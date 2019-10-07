@@ -62,18 +62,42 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 				if (TxnContainer==null) {
 					throw new RuntimeException("Global transaction container not found");
 				}
-				return TxnContainer.global(processName, req);
+				return TxnContainer.global(pf.name, req);
 			case Local:
 				if (TxnContainer==null) {
 					throw new RuntimeException("Local transaction container not found");
 				}
-				return TxnContainer.local(processName, req);
+				return TxnContainer.local(pf.name, req);
+			case Dynamic:
+				logger.debug("execute process flow [{}], transaction type pending",pf.name);
+				ProcessFlowContext context= pf.execute(req);
+				if (context.isTxnTypeChanged()){
+					context.removeChangeFlag();
+					return execute(context,req);
+				}else
+					return context;
 			default:
-				logger.debug("execute process flow [{}] without TxnContainer",processName);
-				return pf.execute(req);
+				logger.debug("execute process flow [{}] without TxnContainer",pf.name);
+				return pf.execute(req);	
 		}
 	}
 	
+	public static ProcessFlowContext execute(ProcessFlowContext context,Object req){
+		switch (context.getTxnType()){			
+			case Global:
+				if (TxnContainer==null) {
+					throw new RuntimeException("Global transaction container not found");
+				}
+				return TxnContainer.global(context, req);
+			case Local:
+				if (TxnContainer==null) {
+					throw new RuntimeException("Local transaction container not found");
+				}
+				return TxnContainer.local(context, req);
+			default:
+				throw new RuntimeException(context.getTxnType()+ " not support on dynamic change");
+		}
+	}
 	public static ProcessFlowBuilder build(String name){
 		return new ProcessFlowBuilder(name);
 	}
@@ -143,4 +167,6 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 			return process;
 		}
 	}
+	
+	
 }

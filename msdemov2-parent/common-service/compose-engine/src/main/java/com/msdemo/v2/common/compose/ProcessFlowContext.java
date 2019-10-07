@@ -3,6 +3,11 @@ package com.msdemo.v2.common.compose;
 import java.util.LinkedHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.msdemo.v2.common.compose.ProcessFlow.TxnType;
+
 public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 
 	/**
@@ -10,27 +15,65 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 	 */
 	private static final long serialVersionUID = 5936203573860132603L;
 	private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	private static Logger logger = LoggerFactory.getLogger(ProcessFlowContext.class);
 	
-	public static final String REQ_KEY="req";
-	public static final String RESP_KEY="resp";
-	public static final String EXCEPTION_FLOW_KEY="_exception_flow";
+	private String processFlowName;
+	private Object req;
+	private Object resp;
+	
+	private String exceptionFlow;
 	private ProcessFlowException exception;
+	private boolean txnTypeChanged=false;
+	private boolean isChangeAllowed=true;
+	private TxnType txnType;
 	
-	public ProcessFlowContext(){
+	
+	public ProcessFlowContext(String processFlowName,TxnType txnType){
 		super(8);
+		this.processFlowName=processFlowName;
+		this.txnType=txnType;
+	}
+	public String getProcessFlowName(){
+		return this.processFlowName;
+	}
+	public void setResp(Object resp){
+		this.resp=resp;
+	}
+	public Object getResp(){
+		return this.resp;
 	}
 	
-	public Object getResponse(){
-		return this.get(RESP_KEY);
+	public TxnType getTxnType(){
+		return this.txnType;
 	}
 	
+	public void setTxnType(TxnType txnType){
+		if (this.txnType.equals(txnType)) return;
+		if (isChangeAllowed && !txnTypeChanged){
+			this.txnType=txnType;
+			txnTypeChanged=true;
+			isChangeAllowed=false;
+			logger.info("txnType has been assigned to {}",txnType);
+		}else{
+			throw new RuntimeException("Transaction Type had been assigned to "+getTxnType());
+		}
+	}
 	
+	public boolean isTxnTypeChanged(){
+		return txnTypeChanged;
+	}
+	public void removeChangeFlag(){
+		txnTypeChanged=false;
+	}
 	@Override
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
+		sb.append(this.processFlowName).append("\n");
+		sb.append("[req] ").append(req).append("\n");
 		this.forEach( (k,v) ->{
-			sb.append("[").append(k).append("] ").append(v).append(" ");
+			sb.append("[").append(k).append("] ").append(v).append("\n");
 		});
+		sb.append("[resp] ").append(req).append("\n");
 		return sb.toString();
 	}
 	
@@ -59,5 +102,17 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 
 	public void setException(ProcessFlowException exception) {
 		this.exception = exception;
+	}
+	public Object getReq() {
+		return req;
+	}
+	public void setReq(Object req) {
+		this.req = req;
+	}
+	public String getExceptionFlow() {
+		return exceptionFlow;
+	}
+	public void setExceptionFlow(String exceptionFlow) {
+		this.exceptionFlow = exceptionFlow;
 	}
 }

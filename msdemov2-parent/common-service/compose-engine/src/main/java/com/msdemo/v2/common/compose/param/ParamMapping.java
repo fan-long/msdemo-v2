@@ -9,6 +9,12 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 public class ParamMapping extends ArrayList<MutablePair<String,String>> {
 
+	public ParamMapping(){
+		super();
+	}
+	public ParamMapping(int size){
+		super(size);
+	}
 	/**
 	 * 
 	 */
@@ -23,5 +29,5 @@ public class ParamMapping extends ArrayList<MutablePair<String,String>> {
 		this.add(new MutablePair<String, String>(left,right));
 		return this;
 	}
-	
+
 }

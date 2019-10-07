@@ -13,8 +13,15 @@ public interface IComposeTxnContainer {
 	default ProcessFlowContext execute(String processName,Object req){
 		return ProcessFlowFactory.get(processName).execute(req);
 	}
+	default ProcessFlowContext execute(ProcessFlowContext context,Object req){
+		return ProcessFlowFactory.get(context.getProcessFlowName()).execute(context,req);
+	}
 	
 	ProcessFlowContext global(String processName,Object req);
+	ProcessFlowContext global(ProcessFlowContext context,Object req);
 	
 	ProcessFlowContext local(String processName,Object req);
+	ProcessFlowContext local(ProcessFlowContext context,Object req);
+	
+	
 }

@@ -7,7 +7,7 @@ import com.msdemo.v2.common.compose.ProcessFlowContext;
 public class SimpleFlow extends AbstractFlow {
 
 	//support for combined flow chain
-	SimpleFlow nextFlow=null;
+	AbstractFlow nextFlow=null;
 	
 	public void verify(){
 		super.verify();
@@ -18,14 +18,11 @@ public class SimpleFlow extends AbstractFlow {
 	}
 	
 	@Override
-	public Object execute(ProcessFlowContext context) throws Exception{
-		Object result=super.execute(context);
+	public void execute(ProcessFlowContext context) throws Exception{
+		super.execute(context);
 		if (nextFlow !=null){
-			return nextFlow.execute(context);
-		}else{
-			return result;
-		}
-		
+			nextFlow.execute(context);
+		}		
 	}
 	
 	public static class Builder extends AbstractFlow.FlowBuilder<SimpleFlow,Builder>{
@@ -35,7 +32,7 @@ public class SimpleFlow extends AbstractFlow {
 			return new SimpleFlow();
 		}
 		
-		public Builder next(SimpleFlow flow){
+		public Builder next(AbstractFlow flow){
 			getFlow().nextFlow=flow;
 			return this;
 		}

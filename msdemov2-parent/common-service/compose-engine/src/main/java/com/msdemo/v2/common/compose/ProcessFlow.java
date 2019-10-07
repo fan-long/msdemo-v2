@@ -33,15 +33,17 @@ public class ProcessFlow {
 			flow.verify();
 		});
 	}
-	public ProcessFlowContext execute(Object req){
-		long start=System.currentTimeMillis();
-		ProcessFlowContext context = new ProcessFlowContext();
-		context.put(ProcessFlowContext.REQ_KEY, req);
+	public ProcessFlowContext execute(ProcessFlowContext context,Object req){
 		AbstractFlow flow=null;
 		try{
 			for (int i=0;i<flowList.size();i++){
 				flow=flowList.get(i);
-				flow.execute(context);
+				if (!context.containsKey(flow.getName())){
+					flow.execute(context);
+					//if transaction type changed, stop the process and return to ProcessFlowFactory
+					if (context.isTxnTypeChanged()) 
+						return context;
+				}
 			};
 			//response
 			if (resultMapping!=null){
@@ -51,17 +53,24 @@ public class ProcessFlow {
 					parser.parseExpression(pair.getLeft()).setValue(result,value);
 				}
 			}
-			context.put(ProcessFlowContext.RESP_KEY, result);			
+			context.setResp(result);			
 		}catch(Exception e){
 			this.exeptionHandler.handle(flow, context, e);
-		}finally{
-			LogUtils.cost(logger, start, name);
 		}
 		return context;
-
+	}
+	public ProcessFlowContext execute(Object req){
+		long start=System.currentTimeMillis();
+		ProcessFlowContext context = new ProcessFlowContext(this.name,this.txnType);
+		context.setReq(req);
+		try {
+			return execute(context,req);
+		} finally{
+			LogUtils.cost(logger, start, name);
+		}
 	}
 	
 	public enum TxnType{
-		Global,Local,Dynamic,Non
+		Global,Local,Dynamic,Non;
 	}
 }

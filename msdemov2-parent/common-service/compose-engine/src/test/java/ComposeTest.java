@@ -96,11 +96,11 @@ public class ComposeTest{
 	
 	@Bean
 	public ProcessFlow testProcess(){
-		ParamMapping m1= new ParamMapping().add("_0", "['req'].data1")
+		ParamMapping m1= new ParamMapping().add("_0", "req.data1")
 				.add("_1", "1");
-		ParamMapping m2= new ParamMapping().add("_0", "['req'].data2")
+		ParamMapping m2= new ParamMapping().add("_0", "req.data2")
 				.add("_1", "10");
-		ParamMapping m3= new ParamMapping().add("_0", "['req'].data3");
+		ParamMapping m3= new ParamMapping().add("_0", "req.data3");
 		
 		ParamMapping m41= new ParamMapping().add("_0", "['F-1']")
 				.add("_1", "1");
@@ -158,7 +158,7 @@ public class ComposeTest{
 //		});
 		TimeUnit.SECONDS.sleep(5);
 		if (context.getException()==null)
-			logger.info("{}",context.getResponse());
+			logger.info("{}",context.getResp());
 		else
 			LogUtils.exceptionLog(logger, context.getException());
 	}

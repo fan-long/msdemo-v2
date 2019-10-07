@@ -17,7 +17,7 @@ public class DefaultExceptionHandler implements IExceptionHandler {
 
 	@Override
 	public void handle(AbstractFlow flow, ProcessFlowContext context, Exception e) {
-		context.put(ProcessFlowContext.EXCEPTION_FLOW_KEY, flow.getName());
+		context.setExceptionFlow(flow.getName());
 		LogUtils.exceptionLog(null, e);
 		Throwable cause=ExceptionUtils.getRootCause(e);
 		context.setException(new ProcessFlowException(context,
@@ -29,7 +29,7 @@ public class DefaultExceptionHandler implements IExceptionHandler {
 				Object value=parser.parseExpression(pair.getRight()).getValue(context);
 				parser.parseExpression(pair.getLeft()).setValue(result,value);
 			}
-			context.put(ProcessFlowContext.RESP_KEY, result);
+			context.setResp(result);
 		}
 	}
 

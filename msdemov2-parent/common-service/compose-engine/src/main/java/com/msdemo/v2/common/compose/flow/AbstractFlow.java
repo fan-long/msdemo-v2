@@ -2,11 +2,11 @@ package com.msdemo.v2.common.compose.flow;
 
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.StringUtils;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.ProcessFlowFactory;
@@ -18,6 +18,7 @@ public abstract class AbstractFlow {
 	Logger logger =LoggerFactory.getLogger(this.getClass());
 	
 	String name;
+	String mergeName;
 	Invoker invoker =new Invoker();
 
 	String beanName;
@@ -49,10 +50,11 @@ public abstract class AbstractFlow {
 
 	}
 	
-	public Object execute(ProcessFlowContext context) throws Exception{
+	public void execute(ProcessFlowContext context) throws Exception{
 		Object result= invoker.invoke(context);
 		context.put(this.name, result);
-		return result;
+		if (StringUtils.isNotEmpty(this.mergeName))
+			context.put(mergeName, result);
 	}
 	static class Invoker{
 
@@ -134,6 +136,10 @@ public abstract class AbstractFlow {
 		}
 		public P mapping(ParamMapping mapping){
 			t.invoker.mapping=mapping;
+			return (P)this;
+		}
+		public P mergeName(String name){
+			t.mergeName=name;
 			return (P)this;
 		}
 		public T build(){

@@ -11,31 +11,35 @@ import com.msdemo.v2.common.compose.param.ParamMapping;
 public class ConditionFlow extends AbstractFlow {
 
 	Map<String,AbstractFlow> condMap= new LinkedHashMap<>();
-		
+	
+	boolean breakOnMatch=true;
 	public static Builder builder(){		
 		return new FlowFactory<Builder>().get(Builder.class);
 	}
-		
+	
 	@Override
 	public void verify(){
 		condMap.forEach( (cond,flow)-> flow.verify());
 	}
 	
 	@Override
-	public Object execute(ProcessFlowContext context) throws Exception{
+	public void execute(ProcessFlowContext context) throws Exception{
 		for (String cond: condMap.keySet()){
 			try {
 				if (ParamMapping.parser.parseExpression(cond)
 						.getValue(context,boolean.class)){
 					logger.debug("({}) matched",cond);
-					context.put(this.getName(), condMap.get(cond).execute(context));
-					break;
+					condMap.get(cond).execute(context);
+					context.put(this.getName(), true);
+					if (breakOnMatch)
+						break;
+				}else{
+					context.put(this.getName(), false);
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}			
 		};
-		return context;
 	}
 	
 	public static class Builder extends AbstractFlow.FlowBuilder<ConditionFlow,Builder>{
@@ -63,11 +67,19 @@ public class ConditionFlow extends AbstractFlow {
 			throw new RuntimeException("property: method not allowed for ConditionFlow");
 		}
 		
+		@Deprecated
+		@Override
+		public Builder mapping(ParamMapping mapping){
+			throw new RuntimeException("property: mapping not allowed for ConditionFlow");
+		}
 		public Builder on(String condEL, AbstractFlow flow){
 			getFlow().condMap.put(condEL,flow);
 			return this;
 		}
-		
+		public Builder breakOnMatch(boolean breakFlag){
+			getFlow().breakOnMatch=breakFlag;
+			return this;
+		}
 		@Override
 		public ConditionFlow build(){
 			Assert.isNull(getFlow().invoker.bean, "bean of flow not allowed");

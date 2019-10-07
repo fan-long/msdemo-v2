@@ -14,7 +14,7 @@ public class AsyncFlow extends SimpleFlow {
 	}
 	
 	@Override
-	public Object execute(ProcessFlowContext context) throws Exception{
+	public void execute(ProcessFlowContext context) throws Exception{
 		AsyncFlow flow = this;
 		new Thread( () ->{
 			ProcessFlowContext asyncContext= (ProcessFlowContext) context.clone();
@@ -27,7 +27,6 @@ public class AsyncFlow extends SimpleFlow {
 				asyncContext.put(flow.name, e.getMessage());
 			}			
 		}).start();
-		return "";
 	}
 	
 	public static class AsyncBuilder extends AbstractFlow.FlowBuilder<AsyncFlow,AsyncBuilder>{

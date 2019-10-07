@@ -1,9 +1,7 @@
 package com.msdemo.v2.common.compose.flow;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.util.Assert;
 
@@ -25,16 +23,14 @@ public class ParallelFlow extends AbstractFlow {
 	}
 	
 	@Override
-	public Object execute(ProcessFlowContext context) throws Exception{
-		Map<String,Object> result= new HashMap<>();
+	public void execute(ProcessFlowContext context) throws Exception{
 		flowList.parallelStream().forEach( flow ->{
 			try {
-				result.put(flow.getName(), flow.execute(context));
+				flow.execute(context);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}			
 		});
-		return result;
 	}
 	
 	public static class Builder extends AbstractFlow.FlowBuilder<ParallelFlow,Builder>{
