@@ -29,7 +29,7 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 	
 	
 	public ProcessFlowContext(String processFlowName,TxnType txnType){
-		super(8);
+		super(32);
 		this.processFlowName=processFlowName;
 		this.txnType=txnType;
 	}
@@ -73,7 +73,7 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 		this.forEach( (k,v) ->{
 			sb.append("[").append(k).append("] ").append(v).append("\n");
 		});
-		sb.append("[resp] ").append(req).append("\n");
+		sb.append("[resp] ").append(resp).append("\n");
 		return sb.toString();
 	}
 	

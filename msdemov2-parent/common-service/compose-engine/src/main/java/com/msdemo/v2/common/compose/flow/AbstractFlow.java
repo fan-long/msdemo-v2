@@ -6,24 +6,32 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeanUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.ProcessFlowFactory;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 import com.msdemo.v2.common.util.LogUtils;
 
+@JsonIgnoreProperties(value={"invoker"})
 public abstract class AbstractFlow {
-	
+	@JsonIgnore
 	Logger logger =LoggerFactory.getLogger(this.getClass());
-	
+	@JsonProperty
 	String name;
+	@JsonProperty
 	String mergeName;
 	Invoker invoker =new Invoker();
-
+	@JsonProperty
 	String beanName;
+	@JsonProperty
 	String methodName;
-	Class<?> className;
+	@JsonProperty
+	String className;
 	
 	public String getName() {
 		return name;
@@ -34,7 +42,14 @@ public abstract class AbstractFlow {
 	}
 	
 	public void verify(){
-		Object bean= invoker.bean==null?ProcessFlowFactory.getSpringBean(beanName):invoker.bean;
+		Object bean=invoker.bean;
+		if (bean==null){
+			if (StringUtils.isNotEmpty(beanName)){
+				bean =ProcessFlowFactory.getSpringBeanByName(beanName);
+			}else{
+				bean= ProcessFlowFactory.getSpringBeanByType(className);
+			}
+		}
 		if(bean!=null){
 			if (StringUtils.isEmpty(name)) name=beanName;					
 			invoker.bean=bean;
@@ -122,12 +137,17 @@ public abstract class AbstractFlow {
 			return (P)this;
 		}
 		
+		public P className(String className){
+			t.className=className;
+			return (P)this;
+		}
 		public P beanName(String beanName){
 			t.beanName=beanName;
 			return (P)this;
 		}
 		public P bean(Object bean){
 			t.invoker.bean=bean;
+			t.className=bean.getClass().getName();
 			return (P)this;
 		}
 		public P method(String methodName){
@@ -158,6 +178,33 @@ public abstract class AbstractFlow {
 				throw new RuntimeException(e);
 			}
 		}
+	}
+	
+	public StringBuilder toXml(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<name>").append(name).append("</name>")
+			.append("<mergeName>").append(mergeName==null?"":mergeName).append("</mergeName>");
+		if (StringUtils.isNotEmpty(beanName))
+			sb.append("<beanName>").append(beanName).append("</beanName>");
+		else if(StringUtils.isNotEmpty(className)){
+			String clzName=className;
+			if (AopUtils.isCglibProxy(invoker.bean)){
+				clzName=AopUtils.getTargetClass(invoker.bean).getName();
+			}else{				
+				try {
+					clzName = invoker.bean.getClass().getGenericInterfaces()[0].getTypeName();
+				} catch (Exception e) {
+					logger.info(e.getMessage());
+				}
+			}
+			sb.append("<className>").append(clzName).append("</className>");
+		}
+		if (StringUtils.isNotEmpty(methodName))
+			sb.append("<methodName>").append(methodName).append("</methodName>");
+		if(invoker.mapping!=null){
+			sb.append(invoker.mapping.toXml());
+		}
+		return sb;
 	}
 	
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msdemo.v2.common.compose.ProcessFlow;
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.ProcessFlowFactory;
@@ -17,6 +18,7 @@ import com.msdemo.v2.common.compose.flow.AsyncFlow;
 import com.msdemo.v2.common.compose.flow.ConditionFlow;
 import com.msdemo.v2.common.compose.flow.ParallelFlow;
 import com.msdemo.v2.common.compose.flow.SimpleFlow;
+import com.msdemo.v2.common.compose.handler.XmlDefinitionHelper;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 import com.msdemo.v2.common.util.LogUtils;
 
@@ -29,6 +31,8 @@ public class ComposeTest{
 	
 	private static final String PROCESS_NAME="TESTPROCESS";
 	
+	private static ObjectMapper om= new ObjectMapper();
+
 	@Component("Async")
 	public static class Async{
 		public void print(String a) throws Exception{
@@ -140,9 +144,17 @@ public class ComposeTest{
 				//.result(new TestDTO(0,0,""), resultMapping)
 				.resultMap(resultMapping)
 				.register();
+		
 		return pf;
 	}
 	
+	@Test
+	public void printProcessFlow() throws Exception{
+		logger.info("processflow json: {}",
+				om.writerWithDefaultPrettyPrinter()
+					.writeValueAsString(ProcessFlowFactory.get(PROCESS_NAME)));
+		
+	}
 	@Test
 	public void beanComponse() throws Exception{
 				
@@ -167,5 +179,18 @@ public class ComposeTest{
 	public void el() throws Exception{
 		beanComponse();
 		beanComponse();
+	}
+	
+	@Test
+	public void fromXml() throws Exception{
+		String xml=ProcessFlowFactory.get(PROCESS_NAME).toXml();
+		logger.info(xml);
+		ProcessFlow pf=XmlDefinitionHelper.formXml(xml);
+		logger.info(pf.toXml());
+	}
+	
+	@Test
+	public void toXml(){
+		logger.info(ProcessFlowFactory.get(PROCESS_NAME).toXml());
 	}
 }

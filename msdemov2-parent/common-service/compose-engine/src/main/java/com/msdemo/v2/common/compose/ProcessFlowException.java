@@ -12,6 +12,9 @@ public class ProcessFlowException extends RuntimeException {
 		this.context=context;
 	}
 
+	public ProcessFlowException(String msg){
+		super(msg);
+	}
 	public ProcessFlowContext getContext() {
 		return context;
 	}

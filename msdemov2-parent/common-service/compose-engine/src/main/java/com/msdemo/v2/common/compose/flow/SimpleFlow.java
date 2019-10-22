@@ -46,4 +46,11 @@ public class SimpleFlow extends AbstractFlow {
 			return super.build();
 		}
 	}
+	public StringBuilder toXml(){
+		StringBuilder sb= super.toXml();
+		if (nextFlow!=null)
+			sb.append("<nextFlow>").append(nextFlow.toXml()).append("</nextFlow>");
+		sb.append("</simpleFlow>").insert(0, "<simpleFlow>");
+		return sb;
+	}
 }

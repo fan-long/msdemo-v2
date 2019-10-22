@@ -71,4 +71,14 @@ public class ParallelFlow extends AbstractFlow {
 		} 
 	}
 
+	public StringBuilder toXml(){
+		StringBuilder sb= super.toXml();
+		sb.append("<flowList>");
+		for(AbstractFlow flow:flowList){
+			sb.append(flow.toXml());
+		}
+		sb.append("</flowList>");
+		sb.append("</parallelFlow>").insert(0, "<parallelFlow>");
+		return sb;
+	}
 }

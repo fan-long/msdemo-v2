@@ -1,6 +1,5 @@
 package com.msdemo.v2.common.compose;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,13 +11,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 import com.msdemo.v2.common.compose.ProcessFlow.TxnType;
 import com.msdemo.v2.common.compose.flow.AbstractFlow;
 import com.msdemo.v2.common.compose.handler.DefaultExceptionHandler;
 import com.msdemo.v2.common.compose.handler.IExceptionHandler;
+import com.msdemo.v2.common.compose.param.INewInstance;
 import com.msdemo.v2.common.compose.param.ParamMapping;
-import com.msdemo.v2.common.compose.trans.IComposeTxnContainer;
+import com.msdemo.v2.common.compose.param.ProcessResultMap;
+import com.msdemo.v2.common.compose.transaction.IComposeTxnContainer;
 
 @Component
 public class ProcessFlowFactory implements ApplicationContextAware{
@@ -52,10 +54,30 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 		}		
 	}
 	
-	public static Object getSpringBean(String beanName){
+	public static Object getSpringBeanByName(String beanName){
 		return SpringContext.getBean(beanName);
 	}
+	public static Object getSpringBeanByType(String className){
+		try {
+			Class<?> type=Class.forName(className);
+			String[] names=SpringContext.getBeanNamesForType(type);
+			if (names.length>1) 
+				throw new RuntimeException("multi bean found for class: "+className);
+			else if(names.length==0)
+				throw new RuntimeException("bean not found for class: "+className);
+			return SpringContext.getBean(names[0]);
+		} catch (BeansException | ClassNotFoundException e) {
+			throw new RuntimeException("bean not defined for class: "+className);
+		}
+	}
+	public static boolean isExisted(String processName){
+		return Catalog.containsKey(processName);
+	}
+	public static String[] nameList(){
+		return Catalog.keySet().toArray(new String[0]);
+	}
 	public static ProcessFlowContext execute(String processName, Object req){
+		if (!isExisted(processName)) throw new ProcessFlowException(processName+" not defined");
 		ProcessFlow pf=ProcessFlowFactory.get(processName);
 		switch (pf.txnType){			
 			case Global:
@@ -76,6 +98,16 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 					return execute(context,req);
 				}else
 					return context;
+			case Prepare:
+				if (TxnContainer==null) {
+					throw new RuntimeException("Local transaction container not found");
+				}
+				try{
+					return TxnContainer.prepare(pf.name, req);
+				}catch (UnexpectedRollbackException e) {
+					logger.info("{} init completed and transaction rolled back",pf.name);
+					return null;
+				}
 			default:
 				logger.debug("execute process flow [{}] without TxnContainer",pf.name);
 				return pf.execute(req);	
@@ -93,7 +125,7 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 				if (TxnContainer==null) {
 					throw new RuntimeException("Local transaction container not found");
 				}
-				return TxnContainer.local(context, req);
+				return TxnContainer.local(context, req);			
 			default:
 				throw new RuntimeException(context.getTxnType()+ " not support on dynamic change");
 		}
@@ -103,7 +135,7 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 	}
 	
 	//for dynamic deployment
-	public static void deploy(ProcessFlow pf){
+	public static String deploy(ProcessFlow pf){
 		if (Catalog.containsKey(pf.name)){
 			logger.info("upgrade process flow: {}", pf.name);
 		}else{
@@ -111,6 +143,7 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 		}
 		pf.verify();
 		Catalog.put(pf.name, pf);
+		return pf.name;
 	}
 	
 	public static ProcessFlow get(String name){
@@ -139,18 +172,23 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 			return this;
 		}
 		
-		public ProcessFlowBuilder result(Object dto,ParamMapping mapping){
-			process.result=dto;
+		public ProcessFlowBuilder result(String dtoClass,ParamMapping mapping){
+			try {
+				Object dto=Class.forName(dtoClass).newInstance();
+				process.resultObject = (INewInstance)dto;
+			} catch (Exception e) {
+				throw new ProcessFlowException(e.getMessage());
+			}				
 			process.resultMapping=mapping;
 			return this;
 		}
 		public ProcessFlowBuilder resultMap(ParamMapping mapping){
-			process.result=new LinkedHashMap<String,Object>();
+			process.resultObject=new ProcessResultMap();
 			process.resultMapping=mapping;
 			return this;
 		}
 		public ProcessFlowBuilder exception(IExceptionHandler handler){
-			process.exeptionHandler=handler;
+			process.exceptionHandler=handler;
 			return this;
 		}
 		public ProcessFlow register(){
@@ -161,9 +199,10 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 				if (Catalog.containsKey(process.name))
 					throw new RuntimeException("deplicate process: "+process.name);
 			}
+			
 			Catalog.put(process.name, process);
-			if (process.exeptionHandler==null)
-				process.exeptionHandler=DefaultExceptionHandler;
+			if (process.exceptionHandler==null)
+				process.exceptionHandler=DefaultExceptionHandler;
 			return process;
 		}
 	}

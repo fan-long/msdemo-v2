@@ -13,6 +13,7 @@ public class ConditionFlow extends AbstractFlow {
 	Map<String,AbstractFlow> condMap= new LinkedHashMap<>();
 	
 	boolean breakOnMatch=true;
+	
 	public static Builder builder(){		
 		return new FlowFactory<Builder>().get(Builder.class);
 	}
@@ -86,5 +87,22 @@ public class ConditionFlow extends AbstractFlow {
 			Assert.isNull(getFlow().invoker.method, "method of flow bean not allowed");
 			return super.build();
 		} 
+	}
+	
+	public StringBuilder toXml(){
+		StringBuilder sb= super.toXml();
+		sb.append("<breakOnMatch>").append(breakOnMatch).append("</breakOnMatch>");
+		if (condMap.size()>0){
+			sb.append("<conditions>");
+			for(String cond:condMap.keySet()){
+				sb.append("<on>")
+					.append("<condEL>").append(cond).append("</condEL>")
+					.append(condMap.get(cond).toXml())
+					.append("</on>");
+			}
+			sb.append("</conditions>");
+		}
+		sb.append("</conditionFlow>").insert(0, "<conditionFlow>");
+		return sb;
 	}
 }

@@ -10,7 +10,7 @@ import com.msdemo.v2.common.compose.param.ParamMapping;
 
 public class DynamicTxnFlow extends ConditionFlow {
 
-	Map<String,TxnType> condMap= new LinkedHashMap<>(3);
+	Map<String,TxnType> condMap= new LinkedHashMap<>(4);
 	
 	public static Builder dynamicTxnBuilder(){		
 		return new FlowFactory<Builder>().get(Builder.class);
@@ -41,5 +41,23 @@ public class DynamicTxnFlow extends ConditionFlow {
 			getFlow().condMap.put(condEL,newTxnType);
 			return this;
 		}
+	}
+	
+	public StringBuilder toXml(){
+		int superTagLength="conditionFlow".length();
+		StringBuilder sb= super.toXml();
+		sb.replace(0, superTagLength+2, "").replace(sb.length()-(superTagLength+3), sb.length(), "");
+		if (condMap.size()>0){
+			sb.append("<conditions>");
+			for(String cond:condMap.keySet()){
+				sb.append("<on>")
+				.append("<condEL>").append(cond).append("</condEL>")
+				.append("<txnType>").append(condMap.get(cond)).append("</txnType>")
+				.append("</on>");
+			}
+			sb.append("</conditions>");
+		}
+		sb.append("</dynamicTxnFlow>").insert(0, "<dynamicTxnFlow>");
+		return sb;
 	}
 }

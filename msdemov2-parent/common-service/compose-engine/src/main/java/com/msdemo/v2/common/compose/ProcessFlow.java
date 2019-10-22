@@ -8,21 +8,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msdemo.v2.common.compose.flow.AbstractFlow;
 import com.msdemo.v2.common.compose.handler.IExceptionHandler;
+import com.msdemo.v2.common.compose.param.INewInstance;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 import com.msdemo.v2.common.util.LogUtils;
+import com.msdemo.v2.common.util.XmlUtils;
 
 public class ProcessFlow {
-
+	@JsonIgnore
 	private static Logger logger =LoggerFactory.getLogger(ProcessFlow.class);
 	
+	@JsonProperty
 	String name;
+	@JsonProperty
 	TxnType txnType=TxnType.Non;
-	IExceptionHandler exeptionHandler;
+	IExceptionHandler exceptionHandler;
+	@JsonProperty
 	List<AbstractFlow> flowList = new ArrayList<>();
+	@JsonProperty
 	ParamMapping resultMapping;
-	Object result;
+	@JsonProperty
+	INewInstance resultObject;
 	
 	public ProcessFlow(String name){
 		this.name=name;
@@ -34,10 +43,11 @@ public class ProcessFlow {
 		});
 	}
 	public ProcessFlowContext execute(ProcessFlowContext context,Object req){
-		AbstractFlow flow=null;
+		String flowName=null;
 		try{
 			for (int i=0;i<flowList.size();i++){
-				flow=flowList.get(i);
+				AbstractFlow flow=flowList.get(i);
+				flowName=flow.getName();
 				if (!context.containsKey(flow.getName())){
 					flow.execute(context);
 					//if transaction type changed, stop the process and return to ProcessFlowFactory
@@ -47,15 +57,16 @@ public class ProcessFlow {
 			};
 			//response
 			if (resultMapping!=null){
+				flowName=INewInstance.USAGE;
+				context.setResp(resultObject.newInstance());			
 				SpelExpressionParser parser = ParamMapping.parser;
 				for (MutablePair<String,String> pair:resultMapping){
 					Object value=parser.parseExpression(pair.getRight()).getValue(context);
-					parser.parseExpression(pair.getLeft()).setValue(result,value);
+					parser.parseExpression(pair.getLeft()).setValue(context,value);
 				}
 			}
-			context.setResp(result);			
 		}catch(Exception e){
-			this.exeptionHandler.handle(flow, context, e);
+			this.exceptionHandler.handle(flowName, context, e);
 		}
 		return context;
 	}
@@ -71,6 +82,35 @@ public class ProcessFlow {
 	}
 	
 	public enum TxnType{
-		Global,Local,Dynamic,Non;
+		Global, //Global transaction, such as SAGA
+		Local, //Local Transaction, such as JDBC, JMS
+		Dynamic, //Dynamic transaction, actual transaction type would be determined during process execution
+		Prepare, //only used for JVM initialize, run dummy TXN then roll back
+		Non; //disable transaction management, for inquire TXN
+	}
+	
+	public String toXml(){
+		StringBuilder sb =new StringBuilder();
+		sb.append("<processFlow name=\"").append(name)
+			.append("\" txnType=\"").append(txnType)
+			.append("\" exceptionHandler=\"").append(exceptionHandler.getClass().getName()).append("\">")
+			.append("<flowList>");
+		for (AbstractFlow flow:flowList){
+			sb.append(flow.toXml());
+		}
+		sb.append("</flowList>");
+		sb.append("<result>");
+		if (resultObject!=null)
+			sb.append("<className>").append(resultObject.getClass().getName()).append("</className>");
+		if (resultMapping!=null)
+			sb.append(resultMapping.toXml());
+		sb.append("</result></processFlow>");
+		
+		try {
+			return XmlUtils.format(sb.toString());
+		} catch (Exception e) {
+			LogUtils.exceptionLog(logger, e);
+			return sb.toString();
+		}
 	}
 }

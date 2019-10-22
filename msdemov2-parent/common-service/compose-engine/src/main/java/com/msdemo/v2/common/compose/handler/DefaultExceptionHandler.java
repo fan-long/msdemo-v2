@@ -8,7 +8,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.ProcessFlowException;
-import com.msdemo.v2.common.compose.flow.AbstractFlow;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 import com.msdemo.v2.common.util.LogUtils;
 
@@ -16,12 +15,12 @@ public class DefaultExceptionHandler implements IExceptionHandler {
 	private ParamMapping mapping=null;
 
 	@Override
-	public void handle(AbstractFlow flow, ProcessFlowContext context, Exception e) {
-		context.setExceptionFlow(flow.getName());
+	public void handle(String flowName, ProcessFlowContext context, Exception e) {
+		context.setExceptionFlow(flowName);
 		LogUtils.exceptionLog(null, e);
 		Throwable cause=ExceptionUtils.getRootCause(e);
 		context.setException(new ProcessFlowException(context,
-				cause,"error on execute flow: " + flow.getName()));
+				cause,"error on execute flow: " + flowName));
 		if (mapping!=null){
 			HashMap<String,String> result =new HashMap<>();
 			SpelExpressionParser parser = ParamMapping.parser;

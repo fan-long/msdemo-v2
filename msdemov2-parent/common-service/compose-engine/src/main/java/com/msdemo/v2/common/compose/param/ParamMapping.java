@@ -30,4 +30,14 @@ public class ParamMapping extends ArrayList<MutablePair<String,String>> {
 		return this;
 	}
 
+	public StringBuilder toXml() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<mappings>");
+		for (MutablePair<String, String> pair : this) {
+			sb.append("<mapping target=\"").append(pair.left).append("\" source=\"").append(pair.right).append("\"/>");
+		}
+		sb.append("</mappings>");
+		return sb;
+	}
+
 }
