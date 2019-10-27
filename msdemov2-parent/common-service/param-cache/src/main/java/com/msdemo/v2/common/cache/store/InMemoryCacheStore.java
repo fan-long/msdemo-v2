@@ -10,12 +10,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import com.msdemo.v2.common.cache.core.AbstractCachedObject;
+import com.msdemo.v2.common.cache.core.CachedQuery;
 import com.msdemo.v2.common.cache.core.ICacheStoreStrategy;
 import com.msdemo.v2.common.cache.core.ICachedParamTable;
 import com.msdemo.v2.common.util.ValueCopyUtils;
@@ -70,11 +72,13 @@ public class InMemoryCacheStore implements ICacheStoreStrategy {
 	}
 	
 	@Override
-	public <T> T get(String cacheKey, String groupKey,boolean isList,boolean cloned, ProceedingJoinPoint pjd) {
-		String params = StringUtils.join(pjd.getArgs(), KEY_DELIMITER);
+	public <T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd) {
+		String params = ICacheStoreStrategy.combineArgs(pjd,annotation);
+		MethodSignature ms = (MethodSignature) pjd.getSignature();
+		boolean isList = ms.getMethod().getReturnType().isAssignableFrom(List.class);
+		String groupKey= StringUtils.join(annotation.value(),ICacheStoreStrategy.KEY_DELIMITER);
 		lock.readLock().lock();
 		try {			
-			
 			if (!cache.get(cacheKey).index.containsKey(groupKey)){
 				cache.get(cacheKey).index.put(groupKey, 
 						ValueCopyUtils.groupByKeys(cache.get(cacheKey).allRecords, 
@@ -90,7 +94,7 @@ public class InMemoryCacheStore implements ICacheStoreStrategy {
 //				if (groupIndex instanceof List) {
 					ArrayList<Object> result = new ArrayList<>(((List<Integer>)groupIndex).size());
 					for (Integer i: (List<Integer>)groupIndex) 
-						result.add(cloned  
+						result.add(annotation.cloned()
 								?((AbstractCachedObject<T>)cache.get(cacheKey).allRecords.get(i)).clone()
 								: (T)cache.get(cacheKey).allRecords.get(i));
 					if (logger.isDebugEnabled())

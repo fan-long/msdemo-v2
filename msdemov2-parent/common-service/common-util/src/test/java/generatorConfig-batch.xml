@@ -24,11 +24,13 @@
     	selectByExampleQueryId="false">
     </table> -->
     
-    <table schema="" tableName="TELLER" domainObjectName="Teller"
+    <table schema="" tableName="SYSTEM_PROPERTY" 
+    	mapperName="SystemPropertyMapper"
+    	domainObjectName="SystemProperty"
     	enableCountByExample="false" 
     	enableUpdateByExample="true" 
     	enableDeleteByExample="false" 
-    	enableSelectByExample="false" 
+    	enableSelectByExample="true" 
     	selectByExampleQueryId="false">
     </table>
     <!-- <columnOverride column="???" property="???" /> -->

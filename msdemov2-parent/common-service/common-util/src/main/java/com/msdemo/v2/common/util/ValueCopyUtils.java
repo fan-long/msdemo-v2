@@ -210,8 +210,6 @@ public final class ValueCopyUtils {
 		FieldAccess fieldAccess = (FieldAccess)asm[1];
     	Map<String,Integer[]> keyMap= (Map<String,Integer[]>)asm[2];
     	
-    	
-    	
     	keyMap.forEach((key,index)->{
     		Object value= (index.length==2)?methodAccess.invoke(src, index[0]):fieldAccess.get(src, index[0]);
     		if (logger.isTraceEnabled()) logger.trace("{}:{}",key,value);
@@ -240,6 +238,29 @@ public final class ValueCopyUtils {
     			 throw new RuntimeException("unsupported type: " + value.getClass());
     		 }
     	});
+    	return result;
+    }
+    
+    public static Object[] getValues(Object src,String[] fields){
+    	if (fields==null) return null;
+    	Object[] result= new Object[fields.length];
+    	Object[] asm = Optional.ofNullable(asmMap.get(src.getClass()))
+    			.orElseGet(() -> cache(src.getClass()));
+    	
+    	Map<String,Integer[]> fieldsMap=  (Map<String,Integer[]>)asm[2];
+    	FieldAccess fieldAccess = (FieldAccess)asm[1];
+    	MethodAccess methodAccess= (MethodAccess)asm[0];
+		
+    	for (int i=0;i<fields.length;i++){
+    		if (fieldsMap.containsKey(fields[i])){
+    			Integer[] index= fieldsMap.get(fields[i]);
+				result[i]=index.length==2?methodAccess.invoke(src, index[0])
+						:fieldAccess.get(src, index[0]);
+    			
+    		}else
+    			result[i]=null;
+    		
+    	}
     	return result;
     }
 }

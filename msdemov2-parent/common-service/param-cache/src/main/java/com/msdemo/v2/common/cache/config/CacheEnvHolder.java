@@ -83,13 +83,13 @@ public class CacheEnvHolder implements InitializingBean {
 		}else{ //valid strategy type
 			if (CachekeyStrategyMapping.containsKey(cacheKey)){
 				//clear cache of old strategy. 
-				//Notes: Redis cache would be cleared more than 1 time by all nodes 
+				//NOTES: Redis cache would be cleared more than 1 time by all nodes 
 				CachekeyStrategyMapping.get(cacheKey).clear(cacheKey);
 				logger.info("replace cache type of {} from {} to {}",cacheKey,
 						CachekeyStrategyMapping.get(cacheKey).cacheType(),
 						strategy.cacheType());				//enable new strategy
-				//FIXME: empty cached data during refresh
-				// consider to allow direct access from DB during refresh period?
+				//TODO: empty cached data during refresh
+				// consider to allow native query in CacheQueryAspect.cachedQuery during refresh period?
 				CachekeyStrategyMapping.put(cacheKey, strategy);
 				//load cache with new strategy
 				strategy.refresh(cacheKey);
@@ -115,23 +115,6 @@ public class CacheEnvHolder implements InitializingBean {
 			logger.info("enabled cache of {} with type: {}", cacheKey,cacheType);
 		}else
 			logger.info("ingored type: {} for cache: {}",cacheKey,cacheType);
-
-//		for (ICachedParamTable<?> cachedTable : cachedMappers) {
-//			//verify new cachekey  
-//			if(StringUtils.equals(cacheKey,getCacheKey(cachedTable))){
-//				for (ICacheStoreStrategy strategy : cacheStrategy) {
-//					//verify cache type
-//					if (StringUtils.equalsIgnoreCase(strategy.cacheType(), cacheType)){
-//						//enable and load cache
-//						CachekeyStrategyMapping.put(cacheKey, strategy);
-//						strategy.refresh(cacheKey);
-//						logger.info("enable cache of {} with type: {}", cacheKey,cacheType);
-//					}
-//				}
-//				return true;
-//			}
-//		}
-//		return false;
 	}
 	//use simple class name to identify cache key
 	public String getCacheKey(ICachedParamTable<?> cachedTable) {

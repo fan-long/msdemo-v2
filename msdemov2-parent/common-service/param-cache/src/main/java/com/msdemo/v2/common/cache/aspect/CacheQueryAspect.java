@@ -5,7 +5,6 @@ import java.util.List;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,20 +41,18 @@ public class CacheQueryAspect{
 			return pjd.proceed(); // skip to invoke native method
 		}
 		
-		MethodSignature ms = (MethodSignature) pjd.getSignature();
-		boolean isList = ms.getMethod().getReturnType().isArray();
-		
 		// TODO: 启动获取所有@CachedQuery类方法，并缓存方法参数名，参考CacheTest
 		// ms.getMethod()可以获取method对象，如果instanceof
 		// ParameterizedType，通过getActualTypeArguments可获取实际类型
-		String groupFields = String.join(ICacheStoreStrategy.KEY_DELIMITER, cachedQuery.value());
+		//String groupFields = String.join(ICacheStoreStrategy.KEY_DELIMITER, cachedQuery.value());
+		
 		if (!holder.getStrategy(cacheKey).hasCache(cacheKey)) {
 			logger.warn("{}: no available cache, reload all...",cacheKey);
 			List<?> allRecords = (List<?>) cachedTable.selectAll();
 			holder.getStrategy(cacheKey).putAll(cacheKey, (List<Object>) allRecords);
 		}
 
-		Object result = holder.getStrategy(cacheKey).get(cacheKey, groupFields, isList, cachedQuery.cloned(), pjd);
+		Object result = holder.getStrategy(cacheKey).get(cacheKey, cachedQuery, pjd);
 		return result;
 	}
 

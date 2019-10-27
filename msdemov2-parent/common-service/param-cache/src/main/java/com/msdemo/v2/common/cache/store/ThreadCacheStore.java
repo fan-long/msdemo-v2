@@ -4,12 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.msdemo.v2.common.ManagedThreadLocal;
+import com.msdemo.v2.common.cache.core.CachedQuery;
 import com.msdemo.v2.common.cache.core.ICacheStoreStrategy;
 
 public class ThreadCacheStore implements ICacheStoreStrategy {
@@ -41,9 +41,9 @@ public class ThreadCacheStore implements ICacheStoreStrategy {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T get(String cacheKey, String groupFields,boolean isList, boolean prototype, ProceedingJoinPoint pjd) {
+	public <T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd) {
 		HashMap<String,Object> cache= threadCache.get();
-		String params = cacheKey+KEY_DELIMITER+StringUtils.join(pjd.getArgs(), KEY_DELIMITER);
+		String params = cacheKey+KEY_DELIMITER+	ICacheStoreStrategy.combineArgs(pjd,annotation);
 		if (cache.containsKey(params)){
 			logger.trace("load  {}", params);
 			return (T) cache.get(params);
