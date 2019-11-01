@@ -3,8 +3,6 @@ package com.msdemo.v2.common.compose.flow;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.util.Assert;
-
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 
 
@@ -33,42 +31,36 @@ public class ParallelFlow extends AbstractFlow {
 		});
 	}
 	
-	public static class Builder extends AbstractFlow.FlowBuilder<ParallelFlow,Builder>{
+	public static class Builder extends AbstractFlowBuilder<ParallelFlow,Builder>{
 
 		@Override
 		ParallelFlow init() {
 			return new ParallelFlow();
 		}
 		
-		@Deprecated
-		@Override
-		public Builder beanName(String beanName){
-			throw new RuntimeException("property: beanName not allowed for ParallelFlow");
-		} 
-		
-		@Deprecated
-		@Override
-		public Builder bean(Object bean){
-			throw new RuntimeException("property: bean not allowed for ParallelFlow");
-		} 
-		
-		@Deprecated
-		@Override
-		public Builder method(String methodName){
-			throw new RuntimeException("property: method not allowed for ParallelFlow");
-		}
+//		@Deprecated
+//		@Override
+//		public Builder beanName(String beanName){
+//			throw new RuntimeException("property: beanName not allowed for ParallelFlow");
+//		} 
+//		
+//		@Deprecated
+//		@Override
+//		public Builder bean(Object bean){
+//			throw new RuntimeException("property: bean not allowed for ParallelFlow");
+//		} 
+//		
+//		@Deprecated
+//		@Override
+//		public Builder method(String methodName){
+//			throw new RuntimeException("property: method not allowed for ParallelFlow");
+//		}
 		
 		public Builder addFlow(AbstractFlow flow){
 			getFlow().flowList.add(flow);
 			return this;
 		}
 		
-		@Override
-		public ParallelFlow build(){
-			Assert.isNull(getFlow().invoker.bean, "bean of flow not allowed");
-			Assert.isNull(getFlow().invoker.method, "method of flow bean not allowed");
-			return super.build();
-		} 
 	}
 
 	public StringBuilder toXml(){
@@ -81,4 +73,5 @@ public class ParallelFlow extends AbstractFlow {
 		sb.append("</parallelFlow>").insert(0, "<parallelFlow>");
 		return sb;
 	}
+	
 }

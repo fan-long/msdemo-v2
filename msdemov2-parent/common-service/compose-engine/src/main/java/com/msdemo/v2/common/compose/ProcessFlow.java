@@ -67,6 +67,7 @@ public class ProcessFlow {
 			}
 		}catch(Exception e){
 			this.exceptionHandler.handle(flowName, context, e);
+			if (context.getException()!=null) throw context.getException();
 		}
 		return context;
 	}

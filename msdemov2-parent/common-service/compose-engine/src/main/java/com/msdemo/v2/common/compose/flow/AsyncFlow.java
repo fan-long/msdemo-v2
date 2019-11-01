@@ -4,15 +4,18 @@ import org.springframework.util.Assert;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 
-public class AsyncFlow extends SimpleFlow {
+public class AsyncFlow extends AbstractInvokerFlow {
 
-	public static AsyncBuilder asyncBuilder(){		
+	//support for combined flow chain
+	AbstractFlow nextFlow=null;
+		
+	public static AsyncBuilder builder(){		
 		return new FlowFactory<AsyncBuilder>().get(AsyncBuilder.class);
 	}
-	
-	@Deprecated
-	public static Builder builder(){
-		return null;
+			
+	public void verify(){
+		super.verify();
+		if (nextFlow!=null)	nextFlow.verify();
 	}
 	
 	@Override
@@ -21,22 +24,20 @@ public class AsyncFlow extends SimpleFlow {
 		new Thread( () ->{
 			ProcessFlowContext asyncContext= (ProcessFlowContext) context.clone();
 			try {
-				super.execute(asyncContext);
-				if (flow.nextFlow !=null){
-					flow.nextFlow.execute(asyncContext);
-				}
+				super.execute(asyncContext);				
 			} catch (Exception e) {
 				asyncContext.put(flow.name, e.getMessage());
 			}			
 		}).start();
 	}
 	
-	public static class AsyncBuilder extends AbstractFlow.FlowBuilder<AsyncFlow,AsyncBuilder>{
+	public static class AsyncBuilder extends AbstractInvokerFlow.FlowBuilder<AsyncFlow,AsyncBuilder>{
 
 		@Override
 		AsyncFlow init() {
 			return new AsyncFlow();
 		}
+
 		public AsyncBuilder next(AbstractFlow flow){
 			getFlow().nextFlow=flow;
 			return this;
@@ -53,9 +54,7 @@ public class AsyncFlow extends SimpleFlow {
 	}
 	
 	public StringBuilder toXml(){
-		int superTagLength="simpleFlow".length();
 		StringBuilder sb= super.toXml();
-		sb.replace(0, superTagLength+2, "").replace(sb.length()-(superTagLength+3), sb.length(), "");
 		sb.append("</asyncFlow>").insert(0, "<asyncFlow>");
 		return sb;
 	}

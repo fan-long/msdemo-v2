@@ -1,128 +1,30 @@
 package com.msdemo.v2.common.compose.flow;
 
-import java.lang.reflect.Method;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msdemo.v2.common.compose.ProcessFlowContext;
-import com.msdemo.v2.common.compose.ProcessFlowFactory;
-import com.msdemo.v2.common.compose.param.ParamMapping;
-import com.msdemo.v2.common.util.LogUtils;
 
-@JsonIgnoreProperties(value={"invoker"})
+@SuppressWarnings({"rawtypes","unchecked"})
 public abstract class AbstractFlow {
-	@JsonIgnore
-	Logger logger =LoggerFactory.getLogger(this.getClass());
-	@JsonProperty
+
 	String name;
-	@JsonProperty
 	String mergeName;
-	Invoker invoker =new Invoker();
-	@JsonProperty
-	String beanName;
-	@JsonProperty
-	String methodName;
-	@JsonProperty
-	String className;
 	
-	public String getName() {
-		return name;
-	}
-
-	public Invoker getInvoker() {
-		return this.invoker;
+	abstract public void execute(ProcessFlowContext context) throws Exception;
+	
+	abstract public void verify();
+	
+	public StringBuilder toXml(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("<name");
+		if (StringUtils.isNotEmpty(mergeName))
+			sb.append(" merge=\"").append(mergeName).append("\"");
+		sb.append(">").append(name).append("</name>");
+		return sb;
 	}
 	
-	public void verify(){
-		Object bean=invoker.bean;
-		if (bean==null){
-			if (StringUtils.isNotEmpty(beanName)){
-				bean =ProcessFlowFactory.getSpringBeanByName(beanName);
-			}else{
-				bean= ProcessFlowFactory.getSpringBeanByType(className);
-			}
-		}
-		if(bean!=null){
-			if (StringUtils.isEmpty(name)) name=beanName;					
-			invoker.bean=bean;
-			Method method=BeanUtils.findMethodWithMinimalParameters(
-					bean.getClass(), methodName);
-			if (method!=null){					
-				invoker.method=method;
-			}else
-				throw new RuntimeException(methodName +" is undefined in Spring bean: "
-						+invoker.bean);		
-		}else
-			throw new RuntimeException(beanName +" is undefined in Spring context");
-
-	}
-	
-	public void execute(ProcessFlowContext context) throws Exception{
-		Object result= invoker.invoke(context);
-		context.put(this.name, result);
-		if (StringUtils.isNotEmpty(this.mergeName))
-			context.put(mergeName, result);
-	}
-	static class Invoker{
-
-		Object bean;
-		Method method;
-		ParamMapping mapping;
-		PreferAccess access = PreferAccess.LOCAL;
-		
-		Object invoke(ProcessFlowContext context) throws Exception{
-			long start=System.currentTimeMillis();
-			int count=method.getParameterCount();
-			Object result;
-			switch (count){
-				case 0:
-					result= method.invoke(bean, new Object[0]);
-					break;
-				case 1:
-					if (method.getParameterTypes()[0].isPrimitive() ||
-							method.getParameterTypes()[0].equals(String.class)){
-						result= method.invoke(bean, new Object[]{ParamMapping.parser.parseExpression(mapping.get(0).getRight())
-									.getValue(context)});
-
-					}else{
-						Object param=method.getParameterTypes()[0].newInstance();
-						for (MutablePair<String,String> pair:mapping){
-							ParamMapping.parser.parseExpression(pair.getLeft()).setValue(
-									param,ParamMapping.parser.parseExpression(pair.getRight())
-									.getValue(context));
-						}
-						result= method.invoke(bean, new Object[]{param});
-					}	
-					break;
-				default:
-					Object[] obj=new Object[count];
-					for (MutablePair<String,String> pair:mapping){
-						obj[Integer.parseInt(pair.getLeft().replaceFirst("_", ""))]=
-								ParamMapping.parser.parseExpression(pair.getRight()).getValue(context);
-					}
-					result= method.invoke(bean, obj);
-			}
-			LogUtils.cost(null, start, method.getName());
-			return result;
-		}
-		
-	}
-	
-	public static enum PreferAccess{
-		LOCAL,REMOTE;
-	}
-	
-	@SuppressWarnings({"rawtypes","unchecked"})
-	public static abstract class FlowBuilder<T extends AbstractFlow, P extends FlowBuilder>{
-		public FlowBuilder(){
+	public static abstract class AbstractFlowBuilder<T extends AbstractFlow, P extends AbstractFlowBuilder>{
+		public AbstractFlowBuilder(){
 			this.t=init();
 		}
 		private T t ;
@@ -136,41 +38,16 @@ public abstract class AbstractFlow {
 			t.name=name;
 			return (P)this;
 		}
-		
-		public P className(String className){
-			t.className=className;
-			return (P)this;
-		}
-		public P beanName(String beanName){
-			t.beanName=beanName;
-			return (P)this;
-		}
-		public P bean(Object bean){
-			t.invoker.bean=bean;
-			t.className=bean.getClass().getName();
-			return (P)this;
-		}
-		public P method(String methodName){
-			t.methodName=methodName;
-			return (P)this;				
-		}
-		public P mapping(ParamMapping mapping){
-			t.invoker.mapping=mapping;
-			return (P)this;
-		}
-		public P mergeName(String name){
-			t.mergeName=name;
+		public P mergeName(String mergeName){
+			t.mergeName=mergeName;
 			return (P)this;
 		}
 		public T build(){
-			if (StringUtils.isEmpty(t.name)) 
-				t.name=t.invoker.bean.getClass().getSimpleName();
 			return t;
 		}
 	}
-	
-	@SuppressWarnings({"rawtypes"})
-	static class FlowFactory<T extends FlowBuilder>{
+
+	static class FlowFactory<T extends AbstractFlowBuilder>{
 		public T get(Class<T> clz) {
 			try {
 				return clz.newInstance();
@@ -178,33 +55,14 @@ public abstract class AbstractFlow {
 				throw new RuntimeException(e);
 			}
 		}
-	}
+	}	
 	
-	public StringBuilder toXml(){
-		StringBuilder sb = new StringBuilder();
-		sb.append("<name>").append(name).append("</name>")
-			.append("<mergeName>").append(mergeName==null?"":mergeName).append("</mergeName>");
-		if (StringUtils.isNotEmpty(beanName))
-			sb.append("<beanName>").append(beanName).append("</beanName>");
-		else if(StringUtils.isNotEmpty(className)){
-			String clzName=className;
-			if (AopUtils.isCglibProxy(invoker.bean)){
-				clzName=AopUtils.getTargetClass(invoker.bean).getName();
-			}else{				
-				try {
-					clzName = invoker.bean.getClass().getGenericInterfaces()[0].getTypeName();
-				} catch (Exception e) {
-					logger.info(e.getMessage());
-				}
-			}
-			sb.append("<className>").append(clzName).append("</className>");
-		}
-		if (StringUtils.isNotEmpty(methodName))
-			sb.append("<methodName>").append(methodName).append("</methodName>");
-		if(invoker.mapping!=null){
-			sb.append(invoker.mapping.toXml());
-		}
-		return sb;
+	public String getMergeName() {
+		return mergeName;
 	}
+
 	
+	public String getName() {
+		return name;
+	}
 }

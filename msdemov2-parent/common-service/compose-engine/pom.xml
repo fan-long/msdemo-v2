@@ -23,6 +23,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.msbasic.demo.v2.common</groupId>
+			<artifactId>common-verification</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.msbasic.demo.v2.common</groupId>
 			<artifactId>common-util</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

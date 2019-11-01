@@ -21,17 +21,24 @@ import com.msdemo.v2.common.compose.ProcessFlow.TxnType;
 import com.msdemo.v2.common.compose.ProcessFlowFactory;
 import com.msdemo.v2.common.compose.ProcessFlowFactory.ProcessFlowBuilder;
 import com.msdemo.v2.common.compose.flow.AbstractFlow;
+import com.msdemo.v2.common.compose.flow.AbstractFlow.AbstractFlowBuilder;
+import com.msdemo.v2.common.compose.flow.AbstractInvokerFlow;
 import com.msdemo.v2.common.compose.flow.AsyncFlow;
 import com.msdemo.v2.common.compose.flow.ConditionFlow;
 import com.msdemo.v2.common.compose.flow.DynamicTxnFlow;
 import com.msdemo.v2.common.compose.flow.ParallelFlow;
 import com.msdemo.v2.common.compose.flow.SimpleFlow;
+import com.msdemo.v2.common.compose.flow.VerificationFlow;
 import com.msdemo.v2.common.compose.param.ParamMapping;
+import com.msdemo.v2.common.verification.BaseHandlerBuilder;
+import com.msdemo.v2.common.verification.IVerificationHandler;
+import com.msdemo.v2.common.verification.IVerificationRule;
 
+@SuppressWarnings("unchecked")
 public class XmlDefinitionHelper {
 	
 	private static Logger logger =LoggerFactory.getLogger(XmlDefinitionHelper.class);
-
+	public static final String DELIMITER=",";
 
 	public static ProcessFlow formXml(String xml) throws Exception{
 		DocumentBuilderFactory bbf = DocumentBuilderFactory.newInstance();
@@ -80,15 +87,45 @@ public class XmlDefinitionHelper {
 		}		
 	}
 	
-	private static AbstractFlow buildFlow(Node node){
+	private static AbstractFlow buildFlow(Node node) throws Exception{
 		logger.trace(node.getNodeName());
 		switch (node.getNodeName()){
+			case "verificationFlow":
+				VerificationFlow.Builder vBuilder = VerificationFlow.builder();
+				NodeList vChilds= node.getChildNodes();
+				for (int i=0;i<vChilds.getLength();i++){
+					Node child=vChilds.item(i);
+					fillBasicField(vBuilder,child);
+					if (child.getNodeName().equals("handlers")){
+						for(int k=0;k<child.getChildNodes().getLength();k++){
+							if (child.getChildNodes().item(k).getNodeName().equals("handler")){
+								Node hNode=child.getChildNodes().item(k);
+								IVerificationHandler<IVerificationRule> handler=(IVerificationHandler<IVerificationRule>)
+										Class.forName(hNode.getAttributes().getNamedItem("class").getTextContent()).newInstance();
+								BaseHandlerBuilder<?> builder = handler.getBuilder();
+								for (int j=0;j<hNode.getChildNodes().getLength();j++){
+									if (hNode.getChildNodes().item(j).getNodeName().equals("rule")){
+										String command= hNode.getChildNodes().item(j).getAttributes().getNamedItem("command").getTextContent();
+										Node paramsNode= hNode.getChildNodes().item(j).getAttributes().getNamedItem("parameters");
+										if (paramsNode!=null)
+											builder.rule(command, StringUtils.split(paramsNode.getTextContent(),DELIMITER));
+										else
+											builder.rule(command);
+									}
+								}
+								builder.build();
+								vBuilder.handler(handler);
+							}
+						}
+					}
+				}
+				return vBuilder.build();
 			case "simpleFlow":
 				SimpleFlow.Builder sBuilder=SimpleFlow.builder();
 				NodeList sChilds= node.getChildNodes();
 				for (int i=0;i<sChilds.getLength();i++){
 					Node child=sChilds.item(i);
-					fillCommonField(sBuilder,child);
+					fillInvokerField(sBuilder,child);
 					if (child.getNodeName().equals("nextFlow")){
 						for(int k=0;k<child.getChildNodes().getLength();k++){
 							AbstractFlow flow=buildFlow(child.getChildNodes().item(k));
@@ -98,11 +135,11 @@ public class XmlDefinitionHelper {
 				}
 				return sBuilder.build();
 			case "asyncFlow":
-				AsyncFlow.AsyncBuilder aBuilder=AsyncFlow.asyncBuilder();
+				AsyncFlow.AsyncBuilder aBuilder=AsyncFlow.builder();
 				NodeList aChilds= node.getChildNodes();
 				for (int i=0;i<aChilds.getLength();i++){
 					Node child=aChilds.item(i);
-					fillCommonField(aBuilder,child);
+					fillInvokerField(aBuilder,child);
 					if (child.getNodeName().equals("nextFlow")){
 						for(int k=0;k<child.getChildNodes().getLength();k++){
 							AbstractFlow flow=buildFlow(child.getChildNodes().item(k));
@@ -116,7 +153,7 @@ public class XmlDefinitionHelper {
 				NodeList pChilds= node.getChildNodes();
 				for (int i=0;i<pChilds.getLength();i++){
 					Node child=pChilds.item(i);
-					fillCommonField(pBuilder,child);
+					fillBasicField(pBuilder,child);
 					if (child.getNodeName().equals("flowList")){
 						for(int k=0;k<child.getChildNodes().getLength();k++){
 							AbstractFlow flow=buildFlow(child.getChildNodes().item(k));
@@ -130,7 +167,7 @@ public class XmlDefinitionHelper {
 				NodeList cChilds= node.getChildNodes();
 				for (int i=0;i<cChilds.getLength();i++){
 					Node child=cChilds.item(i);
-					fillCommonField(cBuilder,child);
+					fillBasicField(cBuilder,child);
 					if (child.getNodeName().equals("conditions")){
 						for(int j=0;j<child.getChildNodes().getLength();j++){
 							if(child.getChildNodes().item(j).getNodeName().equals("on")){
@@ -158,7 +195,7 @@ public class XmlDefinitionHelper {
 				NodeList txnChilds= node.getChildNodes();
 				for (int i=0;i<txnChilds.getLength();i++){
 					Node child=txnChilds.item(i);
-					fillCommonField(txnBuilder,child);
+					fillBasicField(txnBuilder,child);
 					if (child.getNodeName().equals("conditions")){
 						for(int j=0;j<child.getChildNodes().getLength();j++){
 							if(child.getChildNodes().item(j).getNodeName().equals("on")){
@@ -184,16 +221,18 @@ public class XmlDefinitionHelper {
 				//throw new RuntimeException("unknown tag: "+node.getNodeName());
 		}
 	}
-	
-	private static void fillCommonField(AbstractFlow.FlowBuilder<?, ?> builder, Node node){
+	private static void fillBasicField(AbstractFlowBuilder<?, ?> builder, Node node){
 		switch (node.getNodeName()){
 			case "name":
 				builder.name(node.getTextContent());
+				if (node.getAttributes().getNamedItem("merge")!=null)
+					builder.mergeName(node.getAttributes().getNamedItem("merge").getTextContent());
 				break;
-			case "mergeName":
-				if (StringUtils.isNotEmpty(node.getTextContent()))
-					builder.mergeName(node.getTextContent());
-				break;
+		}
+	}
+	private static void fillInvokerField(AbstractInvokerFlow.FlowBuilder<?, ?> builder, Node node){
+		fillBasicField(builder,node);
+		switch (node.getNodeName()){		
 			case "beanName":
 				builder.beanName(node.getTextContent());
 				break;

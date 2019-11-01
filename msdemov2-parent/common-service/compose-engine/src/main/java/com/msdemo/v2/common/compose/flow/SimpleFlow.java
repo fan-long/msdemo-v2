@@ -4,7 +4,7 @@ import org.springframework.util.Assert;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 
-public class SimpleFlow extends AbstractFlow {
+public class SimpleFlow extends AbstractInvokerFlow {
 
 	//support for combined flow chain
 	AbstractFlow nextFlow=null;
@@ -25,7 +25,7 @@ public class SimpleFlow extends AbstractFlow {
 		}		
 	}
 	
-	public static class Builder extends AbstractFlow.FlowBuilder<SimpleFlow,Builder>{
+	public static class Builder extends AbstractInvokerFlow.FlowBuilder<SimpleFlow,Builder>{
 
 		@Override
 		SimpleFlow init() {

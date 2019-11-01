@@ -3,16 +3,21 @@ package com.msdemo.v2.common.compose.flow;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.util.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 
 public class ConditionFlow extends AbstractFlow {
 
+	private static Logger logger =LoggerFactory.getLogger(ConditionFlow.class);
+	
 	Map<String,AbstractFlow> condMap= new LinkedHashMap<>();
 	
+	String name;
 	boolean breakOnMatch=true;
+	String mergeName;
 	
 	public static Builder builder(){		
 		return new FlowFactory<Builder>().get(Builder.class);
@@ -43,36 +48,13 @@ public class ConditionFlow extends AbstractFlow {
 		};
 	}
 	
-	public static class Builder extends AbstractFlow.FlowBuilder<ConditionFlow,Builder>{
+	public static class Builder extends AbstractFlowBuilder<ConditionFlow,Builder>{
 
 		@Override
 		ConditionFlow init() {
 			return new ConditionFlow();
 		}
 		
-		@Deprecated
-		@Override
-		public Builder beanName(String beanName){
-			throw new RuntimeException("property: beanName not allowed for ConditionFlow");
-		} 
-		
-		@Deprecated
-		@Override
-		public Builder bean(Object bean){
-			throw new RuntimeException("property: bean not allowed for ConditionFlow");
-		} 
-		
-		@Deprecated
-		@Override
-		public Builder method(String methodName){
-			throw new RuntimeException("property: method not allowed for ConditionFlow");
-		}
-		
-		@Deprecated
-		@Override
-		public Builder mapping(ParamMapping mapping){
-			throw new RuntimeException("property: mapping not allowed for ConditionFlow");
-		}
 		public Builder on(String condEL, AbstractFlow flow){
 			getFlow().condMap.put(condEL,flow);
 			return this;
@@ -83,8 +65,6 @@ public class ConditionFlow extends AbstractFlow {
 		}
 		@Override
 		public ConditionFlow build(){
-			Assert.isNull(getFlow().invoker.bean, "bean of flow not allowed");
-			Assert.isNull(getFlow().invoker.method, "method of flow bean not allowed");
 			return super.build();
 		} 
 	}
@@ -105,4 +85,6 @@ public class ConditionFlow extends AbstractFlow {
 		sb.append("</conditionFlow>").insert(0, "<conditionFlow>");
 		return sb;
 	}
+
+	
 }

@@ -141,7 +141,7 @@ public class ProcessFlowFactory implements ApplicationContextAware{
 		}else{
 			logger.info("add new process flow: {}", pf.name);
 		}
-		pf.verify();
+//		pf.verify();
 		Catalog.put(pf.name, pf);
 		return pf.name;
 	}

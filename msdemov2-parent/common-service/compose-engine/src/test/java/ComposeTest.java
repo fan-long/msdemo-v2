@@ -122,7 +122,7 @@ public class ComposeTest{
 				.add("['data2']","['F-4-2']")
 				.add("['data3']","['F-4-3']");
 		
-		AsyncFlow asyncFlow=AsyncFlow.asyncBuilder().name("F-async")
+		AsyncFlow asyncFlow=AsyncFlow.builder().name("F-async")
 		.beanName("Async").method("print").mapping(m43).build();
 		
 		ProcessFlow pf= ProcessFlowFactory.build(PROCESS_NAME)

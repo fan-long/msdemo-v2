@@ -10,17 +10,23 @@ import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.ProcessFlowException;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 import com.msdemo.v2.common.util.LogUtils;
+import com.msdemo.v2.common.verification.VerificationException;
 
 public class DefaultExceptionHandler implements IExceptionHandler {
 	private ParamMapping mapping=null;
 
 	@Override
 	public void handle(String flowName, ProcessFlowContext context, Exception e) {
+		//TODO: check VerificationException
 		context.setExceptionFlow(flowName);
-		LogUtils.exceptionLog(null, e);
-		Throwable cause=ExceptionUtils.getRootCause(e);
-		context.setException(new ProcessFlowException(context,
+		if (e instanceof VerificationException){
+			context.setException((VerificationException)e);
+		}else{
+			LogUtils.exceptionLog(null, e);
+			Throwable cause=ExceptionUtils.getRootCause(e);
+			context.setException(new ProcessFlowException(context,
 				cause,"error on execute flow: " + flowName));
+		}
 		if (mapping!=null){
 			HashMap<String,String> result =new HashMap<>();
 			SpelExpressionParser parser = ParamMapping.parser;

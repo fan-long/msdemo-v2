@@ -22,7 +22,7 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 	private Object resp;
 	
 	private String exceptionFlow;
-	private ProcessFlowException exception;
+	private RuntimeException exception;
 	private boolean txnTypeChanged=false;
 	private boolean isChangeAllowed=true;
 	private TxnType txnType;
@@ -96,11 +96,11 @@ public class ProcessFlowContext extends LinkedHashMap<String, Object> {
 		}
 	}
 
-	public ProcessFlowException getException() {
+	public RuntimeException getException() {
 		return exception;
 	}
 
-	public void setException(ProcessFlowException exception) {
+	public void setException(RuntimeException exception) {
 		this.exception = exception;
 	}
 	public Object getReq() {

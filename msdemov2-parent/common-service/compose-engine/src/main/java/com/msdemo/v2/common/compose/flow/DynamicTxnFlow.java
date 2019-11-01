@@ -1,14 +1,13 @@
 package com.msdemo.v2.common.compose.flow;
 
-import com.msdemo.v2.common.compose.ProcessFlow.TxnType;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.msdemo.v2.common.compose.ProcessFlow.TxnType;
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.param.ParamMapping;
 
-public class DynamicTxnFlow extends ConditionFlow {
+public class DynamicTxnFlow extends AbstractFlow {
 
 	Map<String,TxnType> condMap= new LinkedHashMap<>(4);
 	
@@ -31,7 +30,7 @@ public class DynamicTxnFlow extends ConditionFlow {
 			}
 		}
 	}
-	public static class Builder extends AbstractFlow.FlowBuilder<DynamicTxnFlow,Builder>{
+	public static class Builder extends AbstractFlowBuilder<DynamicTxnFlow,Builder>{
 
 		@Override
 		DynamicTxnFlow init() {
@@ -44,9 +43,7 @@ public class DynamicTxnFlow extends ConditionFlow {
 	}
 	
 	public StringBuilder toXml(){
-		int superTagLength="conditionFlow".length();
 		StringBuilder sb= super.toXml();
-		sb.replace(0, superTagLength+2, "").replace(sb.length()-(superTagLength+3), sb.length(), "");
 		if (condMap.size()>0){
 			sb.append("<conditions>");
 			for(String cond:condMap.keySet()){
@@ -59,5 +56,10 @@ public class DynamicTxnFlow extends ConditionFlow {
 		}
 		sb.append("</dynamicTxnFlow>").insert(0, "<dynamicTxnFlow>");
 		return sb;
+	}
+
+	@Override
+	public void verify() {
+		
 	}
 }
