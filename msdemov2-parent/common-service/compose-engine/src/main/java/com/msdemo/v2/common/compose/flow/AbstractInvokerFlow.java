@@ -158,7 +158,7 @@ public abstract class AbstractInvokerFlow extends AbstractFlow{
 					clzName = invoker.bean.getClass().getGenericInterfaces()[0].getTypeName();
 				} catch (Exception e) {
 					//not CGLIB or JDK-proxy, ignore
-					logger.warn(e.getMessage());
+					logger.warn(invoker.bean.getClass()+" is not a Cglib or JDK proxy, ignored. message: "+e.getMessage());
 				}
 			}
 			sb.append("<className>").append(clzName).append("</className>");

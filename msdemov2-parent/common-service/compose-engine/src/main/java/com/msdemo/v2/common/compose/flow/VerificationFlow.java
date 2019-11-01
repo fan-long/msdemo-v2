@@ -78,7 +78,7 @@ public class VerificationFlow extends AbstractFlow{
 			}
 			sb.append("</handlers>");
 		}
-		sb.append("<data>").append("</data>");
+		sb.append("<data source=\"").append(data).append("\"/>");
 		sb.append("</verificationFlow>").insert(0, "<verificationFlow>");
 		return sb;
 	}

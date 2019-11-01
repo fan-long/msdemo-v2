@@ -117,6 +117,8 @@ public class XmlDefinitionHelper {
 								vBuilder.handler(handler);
 							}
 						}
+					}else if (child.getNodeName().equals("data")){
+						vBuilder.data(child.getAttributes().getNamedItem("source").getTextContent());
 					}
 				}
 				return vBuilder.build();
