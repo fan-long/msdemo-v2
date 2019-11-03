@@ -11,7 +11,7 @@ public class DynamicTxnFlow extends AbstractFlow {
 
 	Map<String,TxnType> condMap= new LinkedHashMap<>(4);
 	
-	public static Builder dynamicTxnBuilder(){		
+	public static Builder builder(){		
 		return new FlowFactory<Builder>().get(Builder.class);
 	}
 	

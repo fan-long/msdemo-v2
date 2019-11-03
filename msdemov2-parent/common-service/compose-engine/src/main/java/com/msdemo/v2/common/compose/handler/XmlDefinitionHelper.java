@@ -108,7 +108,7 @@ public class XmlDefinitionHelper {
 										String command= hNode.getChildNodes().item(j).getAttributes().getNamedItem("command").getTextContent();
 										Node paramsNode= hNode.getChildNodes().item(j).getAttributes().getNamedItem("parameters");
 										if (paramsNode!=null)
-											builder.rule(command, StringUtils.split(paramsNode.getTextContent(),DELIMITER));
+											builder.rule(command, (Object[])StringUtils.split(paramsNode.getTextContent(),DELIMITER));
 										else
 											builder.rule(command);
 									}
@@ -193,7 +193,7 @@ public class XmlDefinitionHelper {
 				}
 				return cBuilder.build();
 			case "dynamicTxnFlow":	
-				DynamicTxnFlow.Builder txnBuilder =DynamicTxnFlow.dynamicTxnBuilder();
+				DynamicTxnFlow.Builder txnBuilder =DynamicTxnFlow.builder();
 				NodeList txnChilds= node.getChildNodes();
 				for (int i=0;i<txnChilds.getLength();i++){
 					Node child=txnChilds.item(i);
