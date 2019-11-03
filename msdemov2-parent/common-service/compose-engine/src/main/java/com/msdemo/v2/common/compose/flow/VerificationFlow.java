@@ -1,8 +1,9 @@
 package com.msdemo.v2.common.compose.flow;
 
-import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
 
 import com.msdemo.v2.common.compose.ProcessFlowContext;
 import com.msdemo.v2.common.compose.handler.XmlDefinitionHelper;
@@ -20,7 +21,7 @@ public class VerificationFlow extends AbstractFlow{
 	@Override
 	public void execute(ProcessFlowContext context) throws Exception {
 		chain.verify(ParamMapping.parser.parseExpression(data)
-				.getValue(context,IVerificationAware.class));
+				.getValue(context,IVerificationAware.class),context);
 	}
 
 	@Override
@@ -65,12 +66,12 @@ public class VerificationFlow extends AbstractFlow{
 			sb.append("<handlers>");
 			for(IVerificationHandler<?> handler:chain.getHandler()){
 				sb.append("<handler class=\"").append(handler.getClass().getName()).append("\">");
-				HashMap<String,String[]> rules=handler.getBuilder().getRuleCommands();
-				for (String command:rules.keySet()){
-					sb.append("<rule command=\"").append(command).append("\"");
-					if (rules.get(command)!=null)
+				List<MutablePair<String,Object[]>> rules=handler.getBuilder().getRuleCommands();
+				for (MutablePair<String,Object[]> rule:rules){
+					sb.append("<rule command=\"").append(rule.getKey()).append("\"");
+					if (rule.getValue()!=null)
 						sb.append(" parameters=\"").append(
-								StringUtils.join(rules.get(command),XmlDefinitionHelper.DELIMITER))
+								StringUtils.join(rule.getValue(),XmlDefinitionHelper.DELIMITER))
 							.append("\"");
 					sb.append("/>");		
 				}

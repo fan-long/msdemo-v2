@@ -35,7 +35,7 @@ public class VerificationChain {
 			
 			/* for technical research only, input/output validation*/
 			instance.handlerList.forEach( (h) -> {
-				BaseHandlerBuilder.IRuleFactory ruleFactory= h.registerRuleFactory();
+				BaseHandlerBuilder.IRuleFactory ruleFactory= h.ruleFactory();
 				for (Method m:ruleFactory.getClass().getMethods()){
 					if (Modifier.isPublic(m.getModifiers()) && 
 							m.getGenericReturnType() instanceof ParameterizedType)
@@ -52,8 +52,10 @@ public class VerificationChain {
 			return instance;
 		}
 	}
-
 	public void verify(IVerificationAware req) {
+		verify(req,null);
+	}
+	public void verify(IVerificationAware req,Object paramContext) {
 		/* for technical research only, input/output validation*/
 		Set<Class<?>> reqInterface = new HashSet<>();
 		for (Class<?> itf: req.getClass().getInterfaces())
@@ -69,7 +71,7 @@ public class VerificationChain {
 		}
 				
 		for (IVerificationHandler<?> handler : handlerList) {
-			handler.handle(req);
+			handler.handle(req,paramContext);
 		}
 	}
 	
