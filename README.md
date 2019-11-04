@@ -1,4 +1,4 @@
-a Distributed Application Technical Platform
+a Technical component and development platform for distributed application system
 ===  
   1. param-cache 透明式多级缓存
   -----------------
