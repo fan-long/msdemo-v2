@@ -12,9 +12,9 @@
   4. compose-engine 服务编排
   -----------------
   
-  ![a](https://github.com/fan-long/msdemo-v2/blob/master/img/compose-engine.jpg)
+  ![](https://github.com/fan-long/msdemo-v2/blob/master/img/compose-engine.jpg)
 
   5. common-validation 参数化可组装的规则检查
   -----------------
   
-  ![b](https://github.com/fan-long/msdemo-v2/blob/master/img/common-verification.jpg)
+  ![](https://github.com/fan-long/msdemo-v2/blob/master/img/common-verification.jpg)
