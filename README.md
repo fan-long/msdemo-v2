@@ -1,4 +1,4 @@
-a Technical component and development platform for distributed application system
+some key technical components for distributed application system development
 ===  
   1. param-cache 透明式多级缓存
   -----------------
