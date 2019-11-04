@@ -1,4 +1,4 @@
-微服务技术平台
+a distributed application technical platform
 ===  
   1. param-cache 透明式多级缓存
   -----------------
