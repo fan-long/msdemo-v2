@@ -2,12 +2,15 @@
 ===  
   1. param-cache 透明式多级缓存
   -----------------
+  ![param-cache](https://github.com/fan-long/msdemo-v2/blob/master/img/param-cache.jpg)
   
   2. msg-converter报文解析
   -----------------
+  ![msg-converter](https://github.com/fan-long/msdemo-v2/blob/master/img/msg-converter.jpg)
   
   3. txn-agent SAGA分布式事务框架
   -----------------
+  ![txn-agent](https://github.com/fan-long/msdemo-v2/blob/master/img/txn-agent.jpg)
   
   4. compose-engine 服务编排
   -----------------
