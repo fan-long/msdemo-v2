@@ -1,4 +1,4 @@
-a distributed application technical platform
+a Distributed Application Technical Platform
 ===  
   1. param-cache 透明式多级缓存
   -----------------
