@@ -4,7 +4,7 @@ a Technical component and development platform for distributed application syste
   -----------------
   ![param-cache](https://github.com/fan-long/msdemo-v2/blob/master/img/param-cache.jpg)
   
-  2. msg-converter报文解析
+  2. msg-converter定长报文解析
   -----------------
   ![msg-converter](https://github.com/fan-long/msdemo-v2/blob/master/img/msg-converter.jpg)
   
