@@ -72,7 +72,7 @@ public class InMemoryCacheStore implements ICacheStoreStrategy {
 	}
 	
 	@Override
-	public <T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd) {
+	public <T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd) throws Throwable{
 		String params = ICacheStoreStrategy.combineArgs(pjd,annotation);
 		MethodSignature ms = (MethodSignature) pjd.getSignature();
 		boolean isList = ms.getMethod().getReturnType().isAssignableFrom(List.class);
@@ -91,7 +91,6 @@ public class InMemoryCacheStore implements ICacheStoreStrategy {
 					.get(params);
 			
 			if (groupIndex!=null) {
-//				if (groupIndex instanceof List) {
 					ArrayList<Object> result = new ArrayList<>(((List<Integer>)groupIndex).size());
 					for (Integer i: (List<Integer>)groupIndex) 
 						result.add(annotation.cloned()
@@ -101,13 +100,9 @@ public class InMemoryCacheStore implements ICacheStoreStrategy {
 						logger.debug("load {} record(s) of {}-{}", 
 								((List<?>)result).size(), cacheKey,groupKey);
 					return isList ? (T) result : (T)result.get(0);
-//				}else{
-//					T result =(T) cache.get(cacheKey).allRecords.get((int)groupIndex);
-//					if (logger.isDebugEnabled())
-//						logger.debug("load {}-{}", cacheKey,groupKey);
-//					return  cloned?((AbstractCachedObject<T>)result).clone(): (T)result ;
-//				}
 			}else{
+				if (annotation.pernetrate())
+					return (T) pjd.proceed();					
 				//TODO: result new List() if result type is List?
 				return null;
 			}

@@ -1,9 +1,9 @@
 package com.msdemo.v2.common.cache.aspect;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.msdemo.v2.common.cache.config.CacheEnvHolder;
-import com.msdemo.v2.common.cache.core.ICacheSyncStrategy;
+import com.msdemo.v2.common.cache.core.CacheSyncDTO;
+import com.msdemo.v2.common.cache.core.CacheSyncDTO.Action;
+import com.msdemo.v2.common.cache.core.ICacheSyncPublisher;
 import com.msdemo.v2.common.cache.core.ICachedParamTable;
 
 @Aspect
@@ -21,8 +23,9 @@ public class CacheUpdateAspect{
 	CacheEnvHolder holder;
 
 	@Autowired
-	ICacheSyncStrategy syncAdapter;
+	ICacheSyncPublisher publisher;
 
+//	private static final Logger logger = LoggerFactory.getLogger(CacheUpdateAspect.class);
 	
 	/**
 	 * 记录对缓存表的数据维护操作，事务提交后发布缓存刷新通知
@@ -30,41 +33,51 @@ public class CacheUpdateAspect{
 	 * @param cachedTable
 	 */
 
-	@After("target(cachedTable) && (execution(public * update*(..)) || execution(public * insert*(..)) || execution(public * delete*(..))) ")
-	public void afterModification(ICachedParamTable<?> cachedTable) {
+	@Around("target(cachedTable) && (execution(public * update*(..)) || execution(public * insert*(..)) || execution(public * delete*(..))) ")
+	public Object afterModification(ProceedingJoinPoint pjd,ICachedParamTable<?> cachedTable) throws Throwable{
+		Object result=pjd.proceed();
 		String cacheKey = holder.getCacheKey(cachedTable);
-		syncAdapter.recordModification(cacheKey);
+		CacheSyncDTO dto =new CacheSyncDTO();
+		dto.setCacheKey(cacheKey);
+		dto.setAction(Action.fromMethod(pjd.getSignature().getName()));
+		dto.setValue(pjd.getArgs());
+		publisher.recordModification(dto);
+		return result;
 	}
 
 	// FIXME: check if this method invocation nested in a existing transaction,
-	// should only
-	// publish after existing transaction committed
+	// should only publish after existing transaction committed
 	@Around("@annotation(transaction)")
 	public Object doTransaction(ProceedingJoinPoint pjd, Transactional transaction) throws Throwable {
 		if (transaction.propagation().equals(Propagation.REQUIRED)
 				|| transaction.propagation().equals(Propagation.REQUIRES_NEW)) {
-			syncAdapter.initModification();
+			publisher.initModification();
+			//do transaction
 			Object result = pjd.proceed();
-			ArrayList<String> publishList = new ArrayList<>();
-			for (String cacheKey : ICacheSyncStrategy.modifiedMapperList.get()) {
-				if (holder.getStrategy(cacheKey).isPublishNeeded()) // distribution
-					publishList.add(cacheKey);
-				else {
-					// cache middle-ware
-					// FIXME: async refresh
-					holder.getStrategy(cacheKey).refresh(cacheKey);
-				}
-			}
-			syncAdapter.publishModification(publishList);
-
-			// ParamCacheConstants.modifiedMapperList.get().toArray(new
-			// String[0])
-
+			//then refresh cache
+			if (!ICacheSyncPublisher.modifiedMapperList.get().isEmpty())
+				refreshCache(ICacheSyncPublisher.modifiedMapperList.get());
 			return result;
-
 		} else
 			return pjd.proceed();
 	}
 
+	//TODO: it's better to refresh async, but modifiedMapperList can not be accessed in async thread
+	private void refreshCache(List<CacheSyncDTO> modifiedCaches){
+		ArrayList<CacheSyncDTO> publishList = new ArrayList<>();
+		for (CacheSyncDTO cache : modifiedCaches) {
+			if (holder.isCacheKeyEnabled(cache.getCacheKey())){ 
+				if (holder.getStrategy(cache.getCacheKey()).isPublishNeeded()) 
+					// local-copied cache
+					publishList.add(cache);
+				else {
+					// middle-ware cache
+					// FIXME: async refresh
+					holder.getStrategy(cache.getCacheKey()).refresh(cache.getCacheKey());
+				}
+			}
+		}
+		publisher.publishModification(publishList);
+	}
 	
 }

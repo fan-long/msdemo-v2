@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(ParamCacheConstants.PREFIX_STORE)
 public class ParamConfig {
 
+	public static final String CACHEKEY_DISABLED="none";
+	
 	private HashMap<String,String> bakType;
 	private HashMap<String,String> type;
 
@@ -18,7 +20,7 @@ public class ParamConfig {
 		return type;
 	}
 
-	/** FIXME: Map结构的配置项运行时移除key无法被监听到 **/
+	/** TODO: Map结构的配置项运行时移除key无法被监听到,如果需要运行时关闭缓存，应把cache类型改为none **/
 	public void setType(HashMap<String,String> newType) {
 		if (this.type==null) {
 			this.type=newType;

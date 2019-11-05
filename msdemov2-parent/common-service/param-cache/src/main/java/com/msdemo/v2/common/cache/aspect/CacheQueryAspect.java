@@ -38,7 +38,7 @@ public class CacheQueryAspect{
 			throws Throwable {
 		String cacheKey = holder.getCacheKey(cachedTable);
 		if (!holder.isCacheKeyEnabled(cacheKey)) {
-			return pjd.proceed(); // skip to invoke native method
+			return pjd.proceed(); // skip cached query to invoke native method
 		}
 		
 		// TODO: 启动获取所有@CachedQuery类方法，并缓存方法参数名，参考CacheTest
@@ -72,7 +72,7 @@ public class CacheQueryAspect{
 			if (strategy !=null){
 				strategy.putAll(cacheKey, (List<Object>) result);
 			}
-			logger.debug("load {} record(s) by {} by native method", ((List<Object>) result).size(), cacheKey);
+			logger.debug("load {} record(s) by {} with native method", ((List<Object>) result).size(), cacheKey);
 		}
 
 		return result;

@@ -26,7 +26,11 @@ public class CacheEnvHolder implements InitializingBean {
 	private static HashMap<String, String> ClassCachekeyMapping
 		= new HashMap<>();
 	
-
+	private boolean initFlag;
+	public CacheEnvHolder(boolean initFlag){
+		this.initFlag=initFlag;
+	}
+	
 	@Autowired
 	ParamConfig paramConfig;
 	
@@ -45,11 +49,12 @@ public class CacheEnvHolder implements InitializingBean {
 		for (ICachedParamTable<?> cachedTable : cachedMappers) {
 			String cacheKey=getCacheKey(cachedTable);
 			String cacheType = cacheTypeMapping.get(cacheKey);
+			//TODO: 修改为并行加载
 			for (ICacheStoreStrategy strategy : cacheStrategy) {
 				if (StringUtils.equalsIgnoreCase(strategy.cacheType(), cacheType)){
 					CachekeyStrategyMapping.put(cacheKey, strategy);
 					//启动时初始化加载缓存
-					strategy.refresh(cacheKey);
+					if (initFlag) strategy.refresh(cacheKey);
 				}
 			}
 		}
@@ -64,8 +69,13 @@ public class CacheEnvHolder implements InitializingBean {
 		}
 		return null;
 	}
+//	public boolean isConfigEnabled(String cacheKey){
+//		return paramConfig.getType().containsKey(cacheKey) 
+//				&& !StringUtils.equalsIgnoreCase(paramConfig.getType().get(cacheKey),ParamConfig.CACHEKEY_DISABLED);
+//	}
+	
 	public boolean isCacheKeyEnabled(String cacheKey){
-		return CachekeyStrategyMapping.containsKey(cacheKey);
+		return CachekeyStrategyMapping.containsKey(cacheKey);		
 	}
 	
 	public ICacheStoreStrategy getStrategy(String cacheKey){
@@ -75,13 +85,13 @@ public class CacheEnvHolder implements InitializingBean {
 	void changeCacheType(String cacheKey,String cacheType){
 		ICacheStoreStrategy strategy = getStrategyByType(cacheType);
 		if (strategy==null){ //invalid strategy type
-			if (CachekeyStrategyMapping.containsKey(cacheKey)){
+			if (isCacheKeyEnabled(cacheKey)){
 				disableCache(cacheKey);
 			}else{
 				logger.info("ingored type: {} for cache: {}",cacheKey,cacheType);
 			}
 		}else{ //valid strategy type
-			if (CachekeyStrategyMapping.containsKey(cacheKey)){
+			if (isCacheKeyEnabled(cacheKey)){
 				//clear cache of old strategy. 
 				//NOTES: Redis cache would be cleared more than 1 time by all nodes 
 				CachekeyStrategyMapping.get(cacheKey).clear(cacheKey);
@@ -100,7 +110,7 @@ public class CacheEnvHolder implements InitializingBean {
 		}
 	}
 	void disableCache(String cacheKey){
-		if (CachekeyStrategyMapping.containsKey(cacheKey)){
+		if (isCacheKeyEnabled(cacheKey)){
 			String cacheType=CachekeyStrategyMapping.get(cacheKey).cacheType();
 			CachekeyStrategyMapping.get(cacheKey).clear(cacheKey);
 			CachekeyStrategyMapping.remove(cacheKey);

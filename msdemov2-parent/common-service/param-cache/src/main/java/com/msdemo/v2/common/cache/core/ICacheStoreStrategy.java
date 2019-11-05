@@ -9,7 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import com.msdemo.v2.common.util.ValueCopyUtils;
 
 public interface ICacheStoreStrategy {
-	static String KEY_DELIMITER = "-";
+	static String KEY_DELIMITER = ":";
 	
 	String cacheType();
 	
@@ -19,7 +19,7 @@ public interface ICacheStoreStrategy {
 
 	boolean hasCache(String cacheKey);
 
-	<T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd);
+	<T> T get(String cacheKey, CachedQuery annotation, ProceedingJoinPoint pjd) throws Throwable;
 
 	void refresh(String cacheKey);
 

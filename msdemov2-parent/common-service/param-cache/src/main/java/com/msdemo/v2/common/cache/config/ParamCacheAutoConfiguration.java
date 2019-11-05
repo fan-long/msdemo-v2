@@ -2,6 +2,7 @@ package com.msdemo.v2.common.cache.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,11 +11,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.msdemo.v2.common.cache.aspect.CacheQueryAspect;
 import com.msdemo.v2.common.cache.aspect.CacheUpdateAspect;
 import com.msdemo.v2.common.cache.core.ICacheStoreStrategy;
-import com.msdemo.v2.common.cache.core.ICacheSyncStrategy;
+import com.msdemo.v2.common.cache.core.ICacheSyncPublisher;
+import com.msdemo.v2.common.cache.core.ICacheSyncSubscriber;
 import com.msdemo.v2.common.cache.store.InMemoryCacheStore;
 import com.msdemo.v2.common.cache.store.RedisCacheStore;
 import com.msdemo.v2.common.cache.store.ThreadCacheStore;
-import com.msdemo.v2.common.cache.sync.ConsulAPISyncAdapter;
+import com.msdemo.v2.common.cache.sync.consul.Publisher;
+import com.msdemo.v2.common.cache.sync.consul.Subscriber;
 
 @Configuration
 //@EnableConfigurationProperties({ ParamConfig.class })
@@ -32,8 +35,15 @@ public class ParamCacheAutoConfiguration {
 	}
 	
 	@Bean
+	@ConditionalOnProperty(prefix = ParamCacheConstants.PREFIX_STORE, name = ParamCacheConstants.PROPERTY_CACHE_QUERY, matchIfMissing = true)
+	public CacheEnvHolder cacheEnvHolderInitLoad(){
+		return new CacheEnvHolder(true);
+	}
+	
+	@Bean
+	@ConditionalOnProperty(prefix = ParamCacheConstants.PREFIX_STORE, name = ParamCacheConstants.PROPERTY_CACHE_QUERY, havingValue="false")
 	public CacheEnvHolder cacheEnvHolder(){
-		return new CacheEnvHolder();
+		return new CacheEnvHolder(false);
 	}
 	
 	@Bean
@@ -41,6 +51,12 @@ public class ParamCacheAutoConfiguration {
 	public CacheQueryAspect cacheQueryAspect() {
 		logger.debug("create CacheQueryAspect bean");
 		return new CacheQueryAspect();
+	}
+	@Bean
+	@ConditionalOnProperty(prefix = ParamCacheConstants.PREFIX_STORE, name = ParamCacheConstants.PROPERTY_CACHE_QUERY, matchIfMissing = true)
+	public ICacheSyncSubscriber consulSyncSubscriber(){
+		logger.debug("create consulSyncSubscriber bean");
+		return new Subscriber();
 	}
 
 	@Bean
@@ -51,11 +67,10 @@ public class ParamCacheAutoConfiguration {
 	}
 	
 	@Bean
-	public ICacheSyncStrategy consulSyncAdapter() {
-		logger.debug("create Param-Cache sync bean via Consul API");
-		return new ConsulAPISyncAdapter();
-//		logger.debug("create Param-Cache sync bean via Consul Client");
-//		return new ConsulClientSyncAdapter();
+	@ConditionalOnProperty(prefix = ParamCacheConstants.PREFIX_STORE, name = ParamCacheConstants.PROPERTY_CACHE_UPDATE, matchIfMissing = true)
+	public ICacheSyncPublisher consulSyncPublisher() {
+		logger.debug("create consulSyncPublisher bean");
+		return new Publisher();
 	}
 	
 	@Bean
@@ -65,6 +80,7 @@ public class ParamCacheAutoConfiguration {
 	}
 	
 	@Bean
+	@ConditionalOnBean(name = "redisTemplate")
 	public ICacheStoreStrategy redisCacheStore() {
 		logger.debug("create redisCacheStore bean");
 		return new RedisCacheStore();

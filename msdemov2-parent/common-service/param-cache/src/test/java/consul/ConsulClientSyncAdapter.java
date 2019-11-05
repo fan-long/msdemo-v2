@@ -1,8 +1,8 @@
-package com.msdemo.v2.common.cache.sync;
+package consul;
 
-import com.msdemo.v2.common.cache.core.ICacheSyncStrategy;
+import com.msdemo.v2.common.cache.core.ICacheSyncSubscriber;
 
-public abstract class ConsulClientSyncAdapter implements ICacheSyncStrategy {
+public abstract class ConsulClientSyncAdapter implements ICacheSyncSubscriber {
 
 //	@org.springframework.beans.factory.annotation.Value("${"+ParamCacheConstants.PREFIX_SYNC_CONSUL+"}")
 //	private String configPath;
