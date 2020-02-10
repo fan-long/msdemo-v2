@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msdemo.v2.common.param.table.mapper.BranchMapper">
+  <resultMap id="BaseResultMap" type="com.msdemo.v2.common.param.table.entity.Branch">
+    <id column="branch_id" jdbcType="VARCHAR" property="branchId" />
+    <result column="branch_name" jdbcType="VARCHAR" property="branchName" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from branch_info 
+    where branch_id = #{branchId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.msdemo.v2.common.param.table.entity.Branch">
+    insert into branch_info (branch_id, branch_name)
+    values (#{branchId,jdbcType=VARCHAR}, #{branchName,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.msdemo.v2.common.param.table.entity.Branch">
+    update branch_info
+    set branch_name = #{branchName,jdbcType=VARCHAR}
+    where branch_id = #{branchId,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select branch_id, branch_name
+    from branch_info
+    where branch_id = #{branchId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select branch_id, branch_name
+    from branch_info
+  </select>
+</mapper>

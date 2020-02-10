@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msdemo.v2.common.param.table.mapper.SystemPropertyMapper">
+  <resultMap id="BaseResultMap" type="com.msdemo.v2.common.param.table.entity.SystemProperty">
+    <id column="code" jdbcType="VARCHAR" property="code" />
+    <id column="version" jdbcType="VARCHAR" property="version" />
+    <id column="effective_date" jdbcType="VARCHAR" property="effectiveDate" />
+    <result column="value" jdbcType="VARCHAR" property="value" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from system_property
+    where code = #{code,jdbcType=VARCHAR}
+      and version = #{version,jdbcType=VARCHAR}
+      and effective_date = #{effectiveDate,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.msdemo.v2.common.param.table.entity.SystemProperty">
+    insert into system_property (code, version, effective_date, 
+      value)
+    values (#{code,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, #{effectiveDate,jdbcType=VARCHAR}, 
+      #{value,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.msdemo.v2.common.param.table.entity.SystemProperty">
+    update system_property
+    set value = #{value,jdbcType=VARCHAR}
+    where code = #{code,jdbcType=VARCHAR}
+      and version = #{version,jdbcType=VARCHAR}
+      and effective_date = #{effectiveDate,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+    select code, version, effective_date, value
+    from system_property
+    where code = #{code,jdbcType=VARCHAR}
+      and version = #{version,jdbcType=VARCHAR}
+      and effective_date = #{effectiveDate,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByLogicKey" parameterType="com.msdemo.v2.common.param.table.entity.SystemProperty" resultMap="BaseResultMap">
+    select code, version, effective_date, value
+    from system_property
+    where code = #{code,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select code, version, effective_date, value
+    from system_property
+  </select>
+</mapper>

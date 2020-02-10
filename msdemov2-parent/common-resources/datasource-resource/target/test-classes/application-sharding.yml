@@ -1,0 +1,42 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds-5433,ds-5432
+      ds-5433: 
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: org.postgresql.Driver
+        url: jdbc:postgresql://centos:5433/online
+        username: online
+        password: online
+        initialSize: 1
+        minIdle: 2
+        maxActive: 3
+        queryTimeout: 6000
+        transactionQueryTimeout: 6000
+        removeAbandonedTimeout: 1800
+        filterClassNames: stat
+        filters: stat,config
+        testOnBorrow: false
+      ds-5432: 
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: org.postgresql.Driver
+        url: jdbc:postgresql://centos:5432/online
+        username: online
+        password: online
+
+    config:  
+      props: 
+        sql.show: true
+      sharding:
+#        defaultDataSourceName: ds-5433 #TableMetaDataLoader导致启动缓慢，禁用该参数在非M/S模式下有效，M/S模式下暂无法屏蔽
+        master-slave-rules:
+          ds:
+            master-data-source-name: ds-5433
+            slave-data-source-names: ds-5432
+        tables:
+          test: 
+            actualDataNode: ds.test_${0..500}
+            tableStrategy: 
+              inline:
+                shardingColumn: slice
+                algorithmExpression: test_${slice}
