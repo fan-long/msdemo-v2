@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.msdemo.v2.common.cache.config.UniversalCacheAutoConfiguration,\
+com.msdemo.v2.common.cache.config.UniversalCacheAutoConfiguration$ConsulSyncConfigure

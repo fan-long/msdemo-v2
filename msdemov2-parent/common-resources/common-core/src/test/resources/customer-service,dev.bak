@@ -1,0 +1,30 @@
+logging:
+  level:    
+    root: info
+    com.msdemo.v2: debug
+    org.springframework.cloud.sleuth: info
+    org.apache.kafka.clients: info
+    springfox: info
+    org.springframework.jdbc: info
+
+msdemo-config:
+  param-cache:
+    mode:
+      update: true
+    type: #keep it empty to apply default application level setting
+      
+spring:
+  datasource:
+    dynamic-routing: false
+    druid:
+      routing: 
+        write:
+          default: true
+          url: jdbc:mysql://centos:3306/batch
+          username: batch
+          password: batch 
+        read:
+          url: jdbc:mysql://centos:3307/batch
+          username: batch
+          password: batch
+   

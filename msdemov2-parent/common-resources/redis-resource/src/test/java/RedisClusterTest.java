@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -39,5 +40,16 @@ public class RedisClusterTest {
 		}
 		logger.info("a: {}, b: {}, c: {}", redis.boundValueOps("a").get(), redis.boundValueOps("b").get(),
 				redis.boundValueOps("c").get());
+	}
+	
+	@Test
+	public void routing(){
+		 BoundHashOperations<String,String,String> op=redis.boundHashOps("Routing");
+		 op.put("01:account1", "cust_001");
+		 op.put("01:account2", "cust_002");
+		 op.put("01:account3", "cust_071");
+		 op.put("01:account11", "cust_890");
+		 op.put("01:account12", "cust_910");
+		 op.put("01:account13", "cust_919");
 	}
 }

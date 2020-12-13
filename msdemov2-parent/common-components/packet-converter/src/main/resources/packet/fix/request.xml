@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<message bodyLengthField="header.dataLength"
+	dto="com.msdemo.v2.common.packet.dto.Request">
+	<include name="header" file="header"/>
+	<!-- <segment name="header" dto="com.msdemo.v2.common.packet.dto.Header">
+		<fixString name="transCode" length="6"/>
+		<fixString name="transSeqNo" length="10"/>
+		<fixInteger name="dataLength" length="4"/>
+	</segment> -->
+	<include name="body" linkField="header.transCode" suffix="_req"/>
+</message>

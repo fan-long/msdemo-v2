@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+  <context id="batch" defaultModelType="flat" targetRuntime="MyBatis3"><!--MyBatis3,MyBatis3Simple -->
+    <commentGenerator>
+	    <property name="suppressAllComments" value="true"/>
+	    <property name="suppressDate" value="true"/>
+	</commentGenerator>
+	
+    <jdbcConnection connectionURL="jdbc:mysql://centos:3306/batch?allowMultiQueries=true" 
+    	driverClass="com.mysql.cj.jdbc.Driver" 
+    	password="batch" userId="batch" />
+    
+    <javaModelGenerator targetPackage="com.msdemo.v2.common.lock.model" targetProject="distributed-lock" />
+    <sqlMapGenerator targetPackage="com.msdemo.v2.common.lock.database.repo" targetProject="distributed-lock" />
+    <javaClientGenerator targetPackage="com.msdemo.v2.common.lock.database.repo" targetProject="distributed-lock" type="XMLMAPPER" />
+    
+    
+    <table schema="" tableName="RESOURCE_LOCK" 
+    	mapperName="ResourceLockMapper"
+    	domainObjectName="ResourceLock"
+    	enableCountByExample="false" 
+    	enableUpdateByExample="true" 
+    	enableDeleteByExample="false" 
+    	enableSelectByExample="true" 
+    	selectByExampleQueryId="false">
+    </table>
+    
+    <!-- <table schema="" tableName="ASYNC_TASK" 
+    	mapperName="SimpleAsyncTaskMapper"
+    	domainObjectName="SimpleAsyncTask"
+    	enableCountByExample="false" 
+    	enableUpdateByExample="true" 
+    	enableDeleteByExample="false" 
+    	enableSelectByExample="true" 
+    	selectByExampleQueryId="false">
+    	<generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+    </table> -->
+    <!-- <columnOverride column="???" property="???" /> -->
+    
+  </context>
+</generatorConfiguration>

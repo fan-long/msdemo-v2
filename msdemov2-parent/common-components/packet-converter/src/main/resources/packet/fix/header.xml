@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<segment  dto="com.msdemo.v2.common.packet.dto.Header">
+	<fixString name="transCode" length="6" />
+	<fixString name="transSeqNo" length="10" />
+	<fixString name="channel" length="3"/>
+	<fixTimeStamp name="transDateTime" length="14" pattern="yyyyMMddHHmmss" nullable="true"/>
+	<fixString name="acctDate" length="8"/>
+	<fixString name="tellerId" length="10" trim="true" />
+	<fixString name="routingKey" length="16" trim="true" />	
+	<fixInteger name="dataLength" length="4" />
+	<fixString name="respCode" length="4" />
+	<fixString name="respMessage" length="50" />
+</segment>

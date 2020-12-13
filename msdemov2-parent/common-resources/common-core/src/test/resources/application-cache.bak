@@ -1,0 +1,28 @@
+msdemo-config:
+  ignite: false    
+  cache:
+    enabled: true
+    mode:
+      query: true
+    sync:
+      type: consul
+      stream:          
+      consul:
+        path: config/parameter-service/version/
+        watch-delay: 20000
+    type: #不支持动态移除，禁用可修改为none
+      branch: redis
+      teller: ignite
+      property: jvm
+      ICustomerMapper: thread
+  parameter:
+    read:
+      url: jdbc:mysql://centos:3306/param?allowMultiQueries=true
+      username: param_read
+      password: param_read
+    ignite:
+      dbType: h2
+      url: jdbc:ignite:thin://centos/PUBLIC
+      usename: param_read
+      password: param_read
+      driver-class-name: org.apache.ignite.IgniteJdbcThinDriver

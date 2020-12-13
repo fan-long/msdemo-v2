@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: sabatier
+  data:
+    mongodb:
+      #uri: mongodb://name:password@centos:27017/test
+      uri: mongodb://centos:27017/test
+  cloud:
+    stream:
+      bindings:
+        #异步交易日志
+        trans_log_input:
+          destination: trans_log
+          binder: kafka_centos
+          group: trans_log_group
+          consumer:
+            concurrency: 1
+        trans_log_output:
+          destination: trans_log
+          binder: kafka_centos
+          group: trans_log_group
+        #异步分布式事务  
+        txn_agent_input:
+          destination: txn_agent
+          binder: kafka_centos
+          group: txn_agent_group
+          consumer:
+            concurrency: 1
+        txn_agent_output:
+          destination: txn_agent
+          binder: kafka_centos
+          group: txn_agent_group
+        #异步分布式事务日志
+        txn_agent_log_input:
+          destination: txn_agent
+          binder: kafka_centos
+          group: txn_agent_log_group
+          consumer:
+            concurrency: 2     
+      binders:
+        kafka_centos:
+          type: kafka
+          environment:
+            spring:  
+              cloud:  
+                stream:  
+                  #instanceIndex: 1 ##支持环境变量INSTANCE_INDEX
+                        ## The instance index of the application: a number from 0 to instanceCount-1. Used for partitioning and with Kafka
+                  #instanceCount: 1 ## The number of deployed instances of an application. Must be set for partitioning and if using Kafka.
+                        ## used to partition data across different consumers.
+                  kafka:  
+                    binder:
+                      brokers: centos:9091
+                      zk-nodes: centos:2181
+                      #replicationFactor: 3
+                      #minPartitionCount: 1
+                      autoCreateTopics: true
+                      autoAddPartitions: true

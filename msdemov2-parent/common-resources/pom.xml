@@ -18,22 +18,16 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.msbasic.demo.v2.common</groupId>
-			<artifactId>common-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 	<modules>
+		<module>common-utils</module>
+		<module>common-core</module>
 		<module>datasource-resource</module>
-		<module>mongo-resource</module>
-		<module>mybatis-resource</module>
-		<module>redis-resource</module>
 		<module>script-resource</module>
-		<module>trace-resource</module>
-		<module>transaction-resource</module>
+		<module>data-structure</module>
 		<module>management-resource</module>
-		<module>fastdfs-resource</module>
-		<module>lock-resource</module> 
+		<module>mongo-resource</module>
+		<module>redis-resource</module>
+		<module>file-resource</module>
 	</modules>
 </project>

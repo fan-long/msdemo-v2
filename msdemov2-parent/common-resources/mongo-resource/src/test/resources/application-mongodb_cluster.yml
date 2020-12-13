@@ -1,9 +1,0 @@
-msdemo-config:
-  mongodb:
-    cluster: true
-    online:
-      uri: mongodb://online:online@centos:27001,centos:27002
-      database: online  
-    batch:
-      uri: mongodb://batch:batch@centos:27001,centos:27002
-      database: batch

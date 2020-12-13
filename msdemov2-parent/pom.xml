@@ -26,7 +26,8 @@
 		<oracle.version>12.1.0.1-atlassian-hosted</oracle.version>
 		<scala.version>2.11</scala.version>
 		<spark.version>2.4.3</spark.version>
-		<ignite.version>2.7.5</ignite.version>
+		<ignite.version>2.9.0</ignite.version>
+		<sharding-sphere.version>4.0.1</sharding-sphere.version>
 		<!-- <groovy.version>2.5.8</groovy.version> -->
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version><!-- for Eclipse to support spring boot 2.1.6+.RELEASE -->
 	</properties>
@@ -95,12 +96,13 @@
 		</plugins>
 	</build>
 	<modules>		
+		<module>common-resources</module>
 		<module>common-components</module>
-		<module>batch-services</module>
+		<module>unitized-components</module>
+		<module>batch-components</module>
 		<module>gateway-services</module>
 		<module>business-services</module>
 		<module>outbound-service</module>
-		<module>common-resources</module>
 		<module>scheduler-service</module>
 	</modules>
 </project>

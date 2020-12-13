@@ -1,0 +1,4 @@
+msdemo-config:
+  msg-converter:
+    path-map:
+      customer: /packet/customer/

@@ -116,7 +116,9 @@ public class RedisTemplateConfiguration {
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
         redisTemplate.afterPropertiesSet();
+        
         redisTemplate.setEnableTransactionSupport(false);
+        
         return redisTemplate;
     }
 }

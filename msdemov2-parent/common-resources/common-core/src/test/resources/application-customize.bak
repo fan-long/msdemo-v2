@@ -1,0 +1,78 @@
+msdemo-config:
+  unitization:
+    enable: true
+    unit-count: 2
+    active:
+      1: unit1
+      2: unit1
+  generic:  
+    domains:
+      account: 
+        facade: com.msdemo.v2.account.facade.IAccountFacade
+        application: account-service
+      customer: 
+        facade: com.msdemo.v2.customer.ICustomerFacade
+        application: customer-service
+    service:
+      account-transferIn:
+        journal:
+          enabled: true
+          preInsert: false
+        interceptors: 1-audit
+      account-transferOut:
+        journal:
+          enabled: true
+          preInsert: false    
+  journal:
+    async: false
+    mongo: false
+    agents:
+      TRANS:
+        async: false
+        agent: LOG #LOG,DB_DEFAULT,MONGO, default is DB_DEFAULT
+      DTX_COMPENSATION:
+        async: false #better be false
+      SERVICE_CALLER:
+        dedup: false
+  dtx:
+    compensator: 
+      scheduled: false
+  lock:
+    retry-interval: 5 #ms
+    resource:
+      Txn: redis
+      Task: redis #jdbc
+      File: redis
+  sequence:      
+    trace:
+      id-type: sleuth #redis,zookeeper,sleuth,oracle,snowflake   
+    sleuth:  
+      filters: 
+      - subscribe
+  async:
+    thread-count: 5
+  timer:
+    enable: true
+    thread-count: 4
+  converter:
+    path-map:
+      fix: /packet/fix/
+      flat: /packet/flat/
+  performance:
+    sql-cost: true
+  debug:  
+    sql-param: false
+  script:
+    store: redis
+    javac:
+      group: script:javac
+    groovy:
+      group: script:groovy
+  management:
+    acl: false
+    admin-port: true
+    swagger: true
+    deactived: false
+  batch:
+    partition:
+      type: redis #redis,stream

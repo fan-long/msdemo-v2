@@ -10,16 +10,30 @@
 	<groupId>com.msbasic.demo.v2.common</groupId>
 	<artifactId>common-components</artifactId>
 	<packaging>pom</packaging>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.msbasic.demo.v2</groupId>
+			<artifactId>common-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>		
+	</dependencies>
 	<modules>
-		<module>common-util</module>
-		<module>common-core</module>
-		<module>common-verification</module>
-		<module>common-routing</module>
-		<module>common-packet</module>
-		<module>param-cache</module>
-		<module>msg-converter</module>
-		<module>common-param</module>
-		<module>txn-agent</module>
-		<module>compose-engine</module>
+		<module>timing-listener</module>
+		<module>universal-cache</module>
+		<module>packet-converter</module>
+		<module>composite-engine</module>
+		<module>async-engine</module>
+		<module>service-invoker</module>
+		<module>journal-broker</module>
+		<module>distributed-lock</module>
+		<module>distributed-seq</module>
+		<module>distributed-txn</module>
+		<module>hotspot-resource</module>
 	</modules>
 </project>

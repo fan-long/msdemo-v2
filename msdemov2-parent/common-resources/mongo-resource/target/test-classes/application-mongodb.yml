@@ -1,6 +1,0 @@
-spring:
-  data:
-    mongodb:
-      #uri: mongodb://name:password@centos:27017/test
-      uri: mongodb://centos:27017,centos:27018/test?maxPoolSize=5&minPoolSize=5
-    

@@ -1,0 +1,4 @@
+com.msdemo.v2.common.dtx.journal.DtxJournalEntityType$DTX_MAIN
+com.msdemo.v2.common.dtx.journal.DtxJournalEntityType$DTX_STAGE
+com.msdemo.v2.common.dtx.journal.DtxJournalEntityType$DTX_COMPENSATION
+

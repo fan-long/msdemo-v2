@@ -1,0 +1,44 @@
+msdemo-config:
+  cache:
+    mode:
+      query: false
+      update: true
+  parameter:
+    write:
+      url: jdbc:mysql://centos:3306/param?allowMultiQueries=true
+      username: param
+      password: param
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    read:
+      url: jdbc:mysql://centos:3306/param?allowMultiQueries=true
+      username: param_read
+      password: param_read
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    ignite:
+      dbType: h2
+      url: jdbc:ignite:thin://centos/PUBLIC
+      usename: param_read
+      password: param_read
+      driver-class-name: org.apache.ignite.IgniteJdbcThinDriver    
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:      
+      initialSize: 2
+      minIdle: 2
+      maxActive: 10
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+#      validationQuery:
+#      validationQueryTimeout: 60 
+      testWhileIdle: false
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      filters: stat,wall
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      # 合并多个DruidDataSource的监控数据
+      useGlobalDataSourceStat: true 
+    

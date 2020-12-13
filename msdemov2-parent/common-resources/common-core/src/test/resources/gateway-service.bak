@@ -1,0 +1,33 @@
+logging:
+  level:
+    root: info
+    org.springframework.cloud.sleuth: info
+    org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter: info #网关入口
+    org.springframework.jdbc.datasource: info
+    io.lettuce: error
+    com.msdemo.v2.gateway.filter: info
+    org.springframework.cloud.gateway: info
+    org.springframework.http.server.reactive: info
+    org.springframework.web.reactive.function.server.RequestPredicates: trace #带有sleuthId的网关入口日志
+    org.springframework.boot.autoconfigure.web: info
+    reactor.netty.resources.PooledConnectionProvider: trace #带有sleuthId的http服务调用出口日志
+    redisratelimiter: info
+spring:
+  cloud: 
+    consul:       
+      discovery:
+#feign:
+#  hystrix:
+#    enabled: false
+    
+trans-config:
+  dup-check: false
+  start-position: 0
+  end-position: 6
+  trans-mapping:
+    111110: customer-service
+    111111: customer-service
+    111112: customer-service
+    111221: account-service 
+    111222: account-service
+    111223: account-service

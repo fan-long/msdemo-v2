@@ -1,0 +1,119 @@
+spring:
+  cloud:
+    bus:
+      enabled: false
+    config:
+      override-none: true #配置生效顺序： 远程>命令行>profile>default, overrideNone为true则允许本地命令行优先，见PropertySourceBootstrapProperties.java  
+    consul:       
+      discovery:
+        register: true
+        deregister: true
+        service-name: ${spring.application.name}
+        healthCheckPath: /actuator/health
+        healthCheckInterval: 60s
+        catalogServicesWatchDelay: 60000
+        tags: unit=${unit:unit1}
+        #instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+        instance-id: ${spring.application.name}:${spring.cloud.client.hostname}:${server.port}
+        prefer-ip-address: true
+        instance-zone: 
+        datacenters:
+          account-service: dc_prd
+    loadbalancer:
+      retry:
+        enabled: false #@LoadBalanced是否重试
+  sleuth:
+    enabled: true
+    scheduled:
+      enabled: false # TraceSchedulingAutoConfiguration
+      skip-pattern: # 如果启用需要重新实现
+    web:
+      client:
+        enabled: true     
+    sampler:
+      probability: 1.0 # 将采样比例设置为 1.0，也就是全部都需要。默认是 0.1
+  zipkin:
+    enabled: false
+    base-url: http://centos:9411/ # 指定 Zipkin 服务器的地址
+    sender:
+      type: kafka
+  jackson:
+    default-property-inclusion: non_null
+    
+mybatis:
+  configuration:
+    local-cache-scope: STATEMENT #一级缓存默认为SESSION
+    cache-enabled: false #true启用二级缓存，mapper需增加 @CacheNamespace   
+    
+logging:
+  log_path: d:/temp/msdemov2/  #path: 设置默认路径，此处改为log_path，为自定义配置
+  #_config-file:    #是否必要？各应用可以直接覆盖config配置项，待定
+  config: classpath:${logging._config-file:logback-common.xml}
+  level:    
+    root: info
+    #path: ...
+    com.msdemo.v2: info
+    com.msdemo.v2ribbon: debug
+    com.msdemo.v2.common.composite: debug
+    com.msdemo.v2.common.generic: debug
+    com.msdemo.v2.common.dtx: debug
+    com.msdemo.v2.common.journal: info
+    com.msdemo.v2.common.invocation: info
+    com.msdemo.v2.control.interceptor: debug
+    com.msdemo.v2.unitization: debug
+    org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter: info #服务入口日志:trace
+    org.springframework.jms.connection.JmsTransactionManager: debug
+    org.springframework.jdbc.datasource.DataSourceTransactionManager: debug
+    org.springframework.data.mongodb.MongoTransactionManager: debug  
+    
+#开启actuator管理api，后面要关闭
+management:
+#  context-path: /mgmt
+  endpoints:
+    web:
+      exposure:
+        include: "*"      
+  endpoint:
+    shutdown:
+      enabled: true #启用shutdown endpoint的HTTP访问,优雅停机
+      sensitive: false #不需要验证 
+
+#服务间调用的超时时间配置，交易级别的超时在 gatewaycmd 配置
+feign:
+  hystrix:
+    enabled: false #与FeignTransContext冲突
+  client:
+#    default-config: default #默认设置项名称
+    config:
+      default:           #服务名，填写default为所有服务
+        connectTimeout: 2000 #连接超时
+        readTimeout: 10000   #读取超时，Thread.sleep受此参数控制
+        loggerLevel: full #basic
+        error-decoder: com.msdemo.v2.common.feign.TransErrorDecoder
+        requestInterceptors:
+          - com.msdemo.v2.common.feign.TransContextRequestInterceptor
+
+hystrix:
+  command:
+    default: #缺省配置
+      execution:
+        timeout:
+          enabled: true #如果enabled设置为false，则请求超时交给feign client控制          
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000 #服务间调用超时时间
+    IAccountServiceRemote#queryAccountByCustNo(String):
+      execution:    
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10 #服务间调用超时时间          
+    gatewaycmd: 
+      execution:             
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000   #网关超时时间，即交易超时时间     
+    gatewaycmd_1: 
+      execution:             
+        isolation:
+          thread:
+            timeoutInMilliseconds: 20   #网关超时时间，即交易超时时间 

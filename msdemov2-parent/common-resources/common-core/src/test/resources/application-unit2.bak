@@ -1,0 +1,126 @@
+spring:
+  batch:
+    job: 
+      # Comma-separated list of job names to execute on startup (For instance `job1,job2`). By default, all Jobs found in the context are executed.
+      names: dummy_job # main-job-v2, dispatch-job
+      # Execute all Spring Batch jobs in the context on startup.
+      enabled: false
+    initializer: 
+      # Create the required batch tables on startup if necessary. Enabled automatically if no custom table prefix is set or if a custom schema is configured.
+      enabled: false
+    initialize-schema: never #/ never  
+  rabbitmq:
+    host: centos
+    port: 5672
+    username: unit2
+    password: unit2
+    virtualHost: host2
+  shardingsphere:
+    datasource:
+      names: unit-2,unit-1
+      unit-2: 
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://centos:3306/unit2?allowMultiQueries=true
+        username: unit2
+        password: unit2
+        initialSize: 2
+        minIdle: 2
+        maxActive: 3
+        queryTimeout: 6000
+        transactionQueryTimeout: 6000
+        removeAbandonedTimeout: 1800
+        filterClassNames: stat
+        filters: stat,config
+        testWhileIdle: false
+        testOnBorrow: false
+        testOnReturn: false  
+      unit-1: 
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://centos:3306/unit1?allowMultiQueries=true
+        username: unit1
+        password: unit1
+        initialSize: 2
+        minIdle: 2
+        maxActive: 3
+        queryTimeout: 6000
+        transactionQueryTimeout: 6000
+        removeAbandonedTimeout: 1800
+        filterClassNames: stat
+        filters: stat,config
+        testWhileIdle: false
+        testOnBorrow: false
+        testOnReturn: false
+      
+    props: 
+      sql:
+        show: false
+    sharding:
+      defaultDataSourceName: unit-2 #TableMetaDataLoader导致启动缓慢，禁用该参数在非M/S模式下有效，M/S模式下暂无法屏蔽
+      defaultDatabaseStrategy:
+        complex:
+          shardingColumns: account_no,customer_no  #符合其中任一column进入分库算法
+          algorithmClassName: com.msdemo.v2.untization.data.sharding.UnitIdDatabaseAlgorithm
+#        hint:
+#          algorithmClassName: com.msdemo.v2.untization.data.sharding.UnitIdDatabaseAlgorithm
+      tables:
+        account: 
+          actualDataNodes: unit-$->{['2', '1']}.account_${1..2}
+          tableStrategy: 
+            complex:
+              shardingColumns: account_no,customer_no
+              algorithmClassName: com.msdemo.v2.untization.data.sharding.ShardingIdTableAlgorithm
+        customer: 
+          actualDataNodes: unit-$->{['2', '1']}.customer_${1..2}
+          tableStrategy: 
+            complex:
+              shardingColumns: customer_no
+              algorithmClassName: com.msdemo.v2.untization.data.sharding.ShardingIdTableAlgorithm
+        resource_lock:
+          actualDataNodes: unit-$->{['2', '1']}.resource_lock
+          databaseStrategy:
+            complex:
+              shardingColumns: resource_id
+              algorithmClassName: com.msdemo.v2.untization.data.sharding.UnitIdDatabaseAlgorithm
+        journal_default: 
+          actualDataNodes: unit-$->{['2', '1']}.journal_default      
+          databaseStrategy:
+            complex:
+              shardingColumns: trace_id,txn_id
+              algorithmClassName: com.msdemo.v2.untization.data.sharding.UnitIdDatabaseAlgorithm
+        async_task:
+          actualDataNodes: unit-$->{['2', '1']}.async_task      
+          databaseStrategy:
+            complex:
+              shardingColumns: id,slice_id
+              algorithmClassName: com.msdemo.v2.untization.data.sharding.UnitIdDatabaseAlgorithm
+#          keyGenerator:
+#            column: id
+#            type: SNOWFLAKE
+logging:
+  log_path: /usr/local/server/online/logs
+  
+msdemo-config:
+  unitization:
+    unitId: 2
+    standbyOf: 1
+  batch:
+    queue: unit2_partition
+  sharding:
+    mapping:
+      1:
+        account:
+          1: 1-16
+          2: 17-32
+        customer:
+          1: 1-16
+          2: 17-32
+      2:    
+        account:
+          1: 33-40
+          2: 41-50
+          3: 51-64 
+        customer:
+          1: 33-48
+          2: 49-64  

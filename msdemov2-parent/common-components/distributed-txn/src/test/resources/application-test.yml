@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: sabatier
+  cloud: 
+    bus:
+      enabled: false
+      
+logging:
+  level:    
+    root: info
+    com.msdemo.v2: debug
+    org.springframework.jms.connection.JmsTransactionManager: debug
+    org.springframework.jdbc.datasource.DataSourceTransactionManager: debug
+    org.springframework.data.mongodb.MongoTransactionManager: debug
+    com.alibaba.druid: debug
+          
+msdemo-config:    
+  journal:
+    agents:
+      DTX_MAIN: 
+        async: true
+      DTX_STAGE: 
+        async: true
+      DTX_COMPENSATION: 
+        async: true
+  timer:
+    enable: true
+  lock:
+    type: jdbc #redis
+  performance:
+    sql-cost: true
+  debug:  
+    sql-param: false      

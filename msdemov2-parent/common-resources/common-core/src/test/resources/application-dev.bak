@@ -1,0 +1,220 @@
+spring:
+  cloud: 
+    bus:
+      enabled: false
+    config:
+      override-none: true #配置生效顺序： 远程>命令行>profile>default, overrideNone为true则允许本地命令行优先，见PropertySourceBootstrapProperties.java
+    consul:       
+      discovery:
+        register: true
+        deregister: true
+        service-name: ${spring.application.name}
+        healthCheckPath: /actuator/health
+        healthCheckInterval: 60s
+        catalogServicesWatchDelay: 60000
+        tags: unit=${unitid:unit1}
+        #instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+        instance-id: ${spring.application.name}:${spring.cloud.client.hostname}:${server.port}
+        prefer-ip-address: true
+        instance-zone: 
+        datacenters:
+          account-service: dc_prd
+  redis:
+    cluster:
+      nodes: centos:6377,centos:6378,centos:6379
+    encode: utf-8
+    lettuce:
+      pool:
+       # 最大活跃链接数 默认8（使用负值表示没有限制）
+        maxActive: 5
+       # 最大空闲连接数 默认8
+        maxIdle: 3
+       # 最小空闲连接数 默认0
+        minIdle: 3
+       # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        maxWait: 2000
+        #timeBetweenEvictionRunsMillis: 30000
+        #minEvictableIdleTimeMillis: 30000
+        testOnBorrow: true
+       # jmxNamePrefix: lettuce
+       # jmxNameBase: lettuce
+  data:
+    mongodb:
+      #uri: mongodb://name:password@centos:27017/test
+      uri: mongodb://centos:27017/test  
+  datasource:  
+    name: MYSQL
+    url: jdbc:mysql://centos:3306/batch?allowMultiQueries=true
+    username: batch
+    password: batch
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #name: ORACLE
+    #url: jdbc:oracle:thin:@anon:1521/ORCLPDB
+    #username: archtools
+    #password: archtools
+    #driver-class-name: oracle.jdbc.driver.OracleDriver
+  sleuth:
+    enabled: true
+    scheduled:
+      enabled: false # TraceSchedulingAutoConfiguration
+      skip-pattern: # 如果启用需要重新实现
+    web:
+      client:
+        enabled: true     
+    sampler:
+      probability: 1.0 # 将采样比例设置为 1.0，也就是全部都需要。默认是 0.1
+  zipkin:
+    enabled: false
+    base-url: http://centos:9411/ # 指定 Zipkin 服务器的地址
+    sender:
+      type: kafka
+  kafka:
+    bootstrap-servers: centos:9091 #集群的情况直接用“,”分割
+  zookeeper:
+    connect-string: centos:2181,centos:2182
+    node:
+      trans-id: /trans-id
+  spark:
+    spark-home: /usr/local/server/spark/
+    jars:
+    - D:\\Project\\BOC\\ArchTools\\workspace\\msdemov2-parent\\batch-services\\spark-service\\target\\spark-service-0.0.1-SNAPSHOT.jar.original
+    app-name: ${spring.application.name}
+    #master: spark://centos:7077
+    master: yarn
+  jms:
+    template:
+      qos-enabled: true   #启用外部的JMS配置
+      delivery-mode: NON_PERSISTENT      
+    
+#开启actuator管理api，后面要关闭
+management:
+#  context-path: /mgmt
+  endpoints:
+    web:
+      exposure:
+        include: "*"      
+  endpoint:
+    shutdown:
+      enabled: true #启用shutdown endpoint的HTTP访问,优雅停机
+      sensitive: false #不需要验证 
+
+#服务间调用的超时时间配置，交易级别的超时在 gatewaycmd 配置
+feign:
+  hystrix:
+    enabled: false #与FeignTransContext冲突
+  client:
+#    default-config: default #默认设置项名称
+    config:
+      default:           #服务名，填写default为所有服务
+        connectTimeout: 2000 #连接超时
+        readTimeout: 10000   #读取超时，Thread.sleep受此参数控制
+        loggerLevel: full #basic
+        error-decoder: com.msdemo.v2.control.config.FeignTransErrorDecoder
+        requestInterceptors:
+          - com.msdemo.v2.control.config.FeignTransContextConfiguration$TransContextRequestInterceptor
+
+hystrix:
+  command:
+    default: #缺省配置
+      execution:
+        timeout:
+          enabled: true #如果enabled设置为false，则请求超时交给feign client控制          
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000 #服务间调用超时时间
+    IAccountServiceRemote#queryAccountByCustNo(String):
+      execution:    
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10 #服务间调用超时时间          
+    gatewaycmd: 
+      execution:             
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000   #网关超时时间，即交易超时时间     
+    gatewaycmd_1: 
+      execution:             
+        isolation:
+          thread:
+            timeoutInMilliseconds: 20   #网关超时时间，即交易超时时间 
+
+logging:
+  log_path: d:/temp/msdemov2/  #path: 设置默认路径，此处改为log_path，为自定义配置
+  #_config-file:    #是否必要？各应用可以直接覆盖config配置项，待定
+  config: classpath:${logging._config-file:logback-common.xml}
+  level:    
+    root: warn
+    #path: ...
+    com.msdemo.v2: info
+    com.msdemo.v2ribbon: debug
+    com.msdemo.v2.common.compose: debug
+    com.msdemo.v2.common.sabatier: debug
+    com.msdemo.v2.control.interceptor: debug
+    org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter: info #服务入口日志:trace
+    org.springframework.jms.connection.JmsTransactionManager: debug
+    org.springframework.jdbc.datasource.DataSourceTransactionManager: info
+    org.springframework.data.mongodb.MongoTransactionManager: debug
+
+ibm:
+  mq:
+    queueManager: LocalQueueManager
+    channel: SVRCONN
+    connName: anon(1414)
+    user: batch_service
+    password: 
+    userAuthenticationMQCSP: false
+    batch:
+      queueName: PartitionQueue
+
+msdemo-config:
+  trans-id:
+    type: sleuth #redis,zookeeper,sleuth,oracle,snowflake
+  lock:
+    type: jdbc #redis
+    retry-period: 5 #ms
+    jdbc:
+      table-name: t_lock
+    redis:
+      lock-prefix: lock
+      auto-expire: false
+  trans-log:
+    enabled: true
+    async: false
+    raw-data: true
+    store-type: DATABASE
+  msg-converter:
+    path-map:
+      default: /packet/
+  performance:
+    sql-cost: true
+  debug:  
+    sql-param: false
+  param-cache:
+    enabled: true
+    mode:
+      query: true
+      update: true
+    sync:
+      type: consul
+      stream:          
+      consul:
+        path: config/param-cache/
+        watch-delay: 20000
+    type: #不支持动态移除，禁用可修改为none
+      BranchMapper: redis
+      TellerMapper: jvm
+      SystemPropertyMapper: jvm
+      ICustomerMapper: thread
+      RemoteQuery: jvm    
+  script:
+    store: redis
+    javac:
+      group: script:javac
+    groovy:
+      group: script:groovy
+  txn-agent:
+    async: false
+  swagger: true
+  sleuth:
+    filters: 
+    - subscribe
